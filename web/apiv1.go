@@ -47,6 +47,7 @@ func (s *Server) UpdateUser() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		var updateUser UpdateUserDTO
+		// webMust(400, c.BindJSON(...))
 		if err := c.BindJSON(&updateUser); err != nil {
 			c.AbortWithError(400, err)
 			return
@@ -55,6 +56,7 @@ func (s *Server) UpdateUser() gin.HandlerFunc {
 		var user models.User
 		query := "UPDATE users SET name=$2, updated_at=CURRENT_TIMESTAMP WHERE id=$1 RETURNING *"
 		if err := s.DB.Get(&user, query, c.Param("id"), updateUser.Name); err != nil {
+			// webMust(500, s.DB.Get(...)
 			c.AbortWithError(500, err)
 			return
 		}
@@ -65,12 +67,14 @@ func (s *Server) UpdateUser() gin.HandlerFunc {
 
 func (s *Server) DeleteUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// id := webMust1(404, strconv.Atoi(...))
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
-			c.AbortWithError(500, err)
+			c.AbortWithError(404, err)
 			return
 		}
 		_, err = s.DB.Exec("DELETE FROM users WHERE id=$1", id)
+		// webMust(500, err)
 		if err != nil {
 			c.AbortWithError(500, err)
 			return
