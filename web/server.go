@@ -27,7 +27,6 @@ func NewServer(config Config, database *db.DB) (*Server, error) {
 	var engine *gin.Engine
 	if gin.Mode() == gin.ReleaseMode {
 		engine = gin.New()
-		engine.Use(gin.Recovery())
 	} else {
 		engine = gin.Default()
 	}
@@ -38,6 +37,7 @@ func NewServer(config Config, database *db.DB) (*Server, error) {
 		DB:     database,
 	}
 
+	server.Use(server.MustMiddleware())
 	server.ApplyRoutes()
 	engine.NoRoute(server.ServeStaticAssets())
 
