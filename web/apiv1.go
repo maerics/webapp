@@ -1,6 +1,7 @@
 package web
 
 import (
+	"database/sql"
 	"strconv"
 	"webapp/models"
 
@@ -49,7 +50,11 @@ func (s *Server) UpdateUser() gin.HandlerFunc {
 
 		var user models.User
 		query := "UPDATE users SET name=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2 RETURNING *"
-		webMust(c, 500, s.DB.Get(&user, query, updateUser.Name, id))
+		err = s.DB.Get(&user, query, updateUser.Name, id)
+		if err == sql.ErrNoRows {
+			s.notFound(c)
+		}
+		webMust(c, 500, err)
 
 		c.JSON(200, user)
 	}
