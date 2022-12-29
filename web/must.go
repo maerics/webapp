@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/maerics/golog"
+	log "github.com/maerics/golog"
 )
 
 type WebErr struct {
@@ -25,11 +25,11 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 
 	return gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recovered any) {
 		if webErr, ok := recovered.(WebErr); ok {
-			golog.Debugf("recovered WebErr -> (%v,%q,%v)",
+			log.Debugf("recovered WebErr -> (%v,%q,%v)",
 				webErr.Status, statusMessage(webErr.Status), webErr.Err)
 
 			if webErr.Status/100 == 5 {
-				golog.Errorf("%v\n%v", webErr.Err, string(stack(5)))
+				log.Errorf("%v\n%v", webErr.Err, string(stack(5)))
 			}
 
 			switch true {
@@ -48,7 +48,7 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 		// Fallback with 500 internal server error.
 		s.mustServeStatic(c, 500, "500.html")
 		c.AbortWithError(500, fmt.Errorf("%v", recovered))
-		golog.Errorf("panic recovered: %v\n%v", recovered, string(stack(4)))
+		log.Errorf("panic recovered: %v\n%v", recovered, string(stack(4)))
 	})
 }
 
