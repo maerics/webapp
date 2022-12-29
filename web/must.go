@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -25,18 +26,45 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 	return gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recovered any) {
 		if webErr, ok := recovered.(WebErr); ok {
 			golog.Debugf("recovered -> (%v,%q)", webErr.Status, statusMessage(webErr.Status))
-			c.JSON(webErr.Status, gin.H{"error": statusMessage(webErr.Status)})
-			if webErr.Status/100 == 5 {
+
+			switch true {
+			case preferJson(c.Request.Header.Get("Accept")):
+				c.JSON(webErr.Status, gin.H{"error": statusMessage(webErr.Status)})
+			case webErr.Status == 404:
+				s.mustServeStatic(c, 404, "404.html")
+			case webErr.Status/100 == 5:
+				s.mustServeStatic(c, webErr.Status, "500.html")
 				golog.Errorf("%v\n%v", webErr.Err, string(stack(5)))
+			default:
+				c.JSON(webErr.Status, gin.H{"error": statusMessage(webErr.Status)})
 			}
 			return
 		}
 
 		// Fallback with 500 internal server error.
+		s.mustServeStatic(c, 500, "500.html")
 		c.AbortWithError(500, fmt.Errorf("%v", recovered))
 		golog.Errorf("panic recovered: %v\n%v", recovered, string(stack(4)))
 	})
 }
+
+var preferJson = (func() func(string) bool {
+	commaSepRegex := regexp.MustCompile(`\s*,\s*`)
+	htmlTypeRegex := regexp.MustCompile(`/html\b`)
+	jsonTypeRegex := regexp.MustCompile(`/json\b`)
+	return func(acceptHeader string) bool {
+		parts := commaSepRegex.Split(acceptHeader, -1)
+		for _, part := range parts {
+			switch true {
+			case htmlTypeRegex.MatchString(part):
+				return false
+			case jsonTypeRegex.MatchString(part):
+				return true
+			}
+		}
+		return false
+	}
+})()
 
 func statusMessage(code int) string {
 	message := strings.ToLower(http.StatusText(code))
