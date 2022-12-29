@@ -28,7 +28,7 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 			golog.Debugf("recovered -> (%v,%q)", webErr.Status, statusMessage(webErr.Status))
 
 			switch true {
-			case preferJson(c.Request.Header.Get("Accept")):
+			case preferJson(c.Request.Header):
 				c.JSON(webErr.Status, gin.H{"error": statusMessage(webErr.Status)})
 			case webErr.Status == 404:
 				s.mustServeStatic(c, 404, "404.html")
@@ -48,11 +48,14 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 	})
 }
 
-var preferJson = (func() func(string) bool {
+// Shoddy content negotation for JSON preference.
+var preferJson = (func() func(http.Header) bool {
 	commaSepRegex := regexp.MustCompile(`\s*,\s*`)
 	htmlTypeRegex := regexp.MustCompile(`/html\b`)
 	jsonTypeRegex := regexp.MustCompile(`/json\b`)
-	return func(acceptHeader string) bool {
+	return func(header http.Header) bool {
+		// See if they prefer to accept JSON.
+		acceptHeader := header.Get("Accept")
 		parts := commaSepRegex.Split(acceptHeader, -1)
 		for _, part := range parts {
 			switch true {
@@ -62,7 +65,8 @@ var preferJson = (func() func(string) bool {
 				return true
 			}
 		}
-		return false
+		// See if they sent JSON.
+		return jsonTypeRegex.MatchString(header.Get("Content-Type"))
 	}
 })()
 

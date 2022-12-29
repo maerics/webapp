@@ -1,20 +1,29 @@
 package web
 
-import "testing"
+import (
+	"net/http"
+	"testing"
+)
 
 func TestPreferJson(t *testing.T) {
+	type h http.Header
+
 	for i, eg := range []struct {
-		acceptHeader string
+		acceptHeader h
 		expected     bool
 	}{
-		{"", false},
-		{"application/json", true},
-		{"text/json", true},
-		{"application/html", false},
-		{"text/html", false},
-		{"text/json,text/html", true},
-		{"text/html, text/json", false},
+		{h{}, false},
+		{h{"Accept": {"application/json"}}, true},
+		{h{"Accept": {"text/json"}}, true},
+		{h{"Accept": {"application/html"}}, false},
+		{h{"Accept": {"text/html"}}, false},
+		{h{"Accept": {"text/json,text/html"}}, true},
+		{h{"Accept": {"text/html, text/json"}}, false},
+		{h{"Accept": {"text/html"}, "Content-Type": {"text/json"}}, false},
+		{h{"Accept": {"text/html, *"}, "Content-Type": {"text/json"}}, false},
+		{h{"Accept": {"*"}, "Content-Type": {"text/json"}}, true},
+		{h{"Content-Type": {"text/json"}}, true},
 	} {
-		assertEqual(t, i, eg.expected, preferJson(eg.acceptHeader))
+		assertEqual(t, i, eg.expected, preferJson(http.Header(eg.acceptHeader)))
 	}
 }
