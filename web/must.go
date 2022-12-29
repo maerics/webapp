@@ -25,7 +25,12 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 
 	return gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recovered any) {
 		if webErr, ok := recovered.(WebErr); ok {
-			golog.Debugf("recovered -> (%v,%q)", webErr.Status, statusMessage(webErr.Status))
+			golog.Debugf("recovered WebErr -> (%v,%q,%v)",
+				webErr.Status, statusMessage(webErr.Status), webErr.Err)
+
+			if webErr.Status/100 == 5 {
+				golog.Errorf("%v\n%v", webErr.Err, string(stack(5)))
+			}
 
 			switch true {
 			case preferJson(c.Request.Header):
@@ -34,7 +39,6 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 				s.mustServeStatic(c, 404, "404.html")
 			case webErr.Status/100 == 5:
 				s.mustServeStatic(c, webErr.Status, "500.html")
-				golog.Errorf("%v\n%v", webErr.Err, string(stack(5)))
 			default:
 				c.JSON(webErr.Status, gin.H{"error": statusMessage(webErr.Status)})
 			}
