@@ -43,6 +43,7 @@ func NewServer(config Config, database *db.DB) (*Server, error) {
 	engine.Use(server.MustMiddleware())
 	engine.NoRoute(server.ServeStaticAssets())
 
+	server.GET("/_status", server.Status())
 	server.ApplyRoutes()
 
 	return server, nil
@@ -52,8 +53,6 @@ func (s *Server) Run() error {
 	log.Debugf("starting web server with config %v", util.MustJson(s.Config))
 	return s.Engine.Run()
 }
-
-// TODO: GET /_status
 
 func (s *Server) ServeStaticAssets() gin.HandlerFunc {
 	var static http.Handler
@@ -91,4 +90,59 @@ func (s *Server) mustServeStatic(c *gin.Context, status int, filename string) {
 	}
 	mtype := mimetype.Detect(bs)
 	c.Data(status, mtype.String(), bs)
+}
+
+func (s *Server) Status() gin.HandlerFunc {
+	type StatusDTO struct {
+		Status string      `json:"status"`
+		Env    string      `json:"env"`
+		Net    NetworkInfo `json:"network"`
+		HTTP   HTTPInfo    `json:"http"`
+	}
+
+	return func(c *gin.Context) {
+		headers := map[string]string{}
+		for k := range c.Request.Header {
+			headers[k] = c.Request.Header.Get(k)
+		}
+
+		c.Data(200,
+			"text/json; charset=utf-8",
+			[]byte(util.MustJson(&StatusDTO{
+				Status: "ok",
+
+				Env: s.Config.Environment,
+				Net: getNetworkInfo(c),
+				HTTP: HTTPInfo{
+					Host:    c.Request.Host,
+					Method:  c.Request.Method,
+					URL:     c.Request.URL.String(),
+					Headers: headers,
+				},
+			}, true)))
+	}
+}
+
+type NetworkInfo struct {
+	ClientIP      *string `json:"client_ip"`
+	OutboundIP    *string `json:"outbound_ip,omitempty"`
+	OutboundDNSIP *string `json:"outbound_dns_ip,omitempty"`
+}
+
+type HTTPInfo struct {
+	Host    string            `json:"host"`
+	Method  string            `json:"method"`
+	URL     string            `json:"url"`
+	Headers map[string]string `json:"headers"`
+}
+
+func getNetworkInfo(c *gin.Context) NetworkInfo {
+	var clientIP string
+	if c != nil {
+		clientIP = c.ClientIP()
+	}
+
+	return NetworkInfo{
+		ClientIP: &clientIP,
+	}
 }
