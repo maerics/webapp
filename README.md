@@ -15,15 +15,18 @@ A Go backend web application skeleton with opinionated logging and basic databas
 ## Setup
 
 1. Export this repository:
-    ```sh
-    git clone https://github.com/maerics/webapp
-    cd webapp
-    ```
-1. Globally replace the token `webapp` with your app name, e.g. "myapp".
-    ```sh
-    sed -i '' s/webapp/myapp/g $(find . -type f)
-    ```
-1. Run `make` to ensure tests pass.
+   ```sh
+   git clone https://github.com/maerics/webapp
+   cd webapp
+   ```
+1. Globally replace the token `webapp` with your app name, e.g. "myapp":
+   ```sh
+   sed -i '' s/webapp/myapp/g $(git grep -lw webapp)
+   ```
+1. Run `make` to ensure tests pass and remove the git directory:
+   ```
+   make && rm -rf .git
+   ```
 1. Remove this "Setup" section from the README.
 
 ## Overview
