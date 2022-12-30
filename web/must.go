@@ -20,18 +20,29 @@ type WebErr struct {
 	Err     error
 }
 
-func (s *Server) MustMiddleware() gin.HandlerFunc {
-	s.Use(gin.Recovery())
+func webMust(c *gin.Context, status int, err error) {
+	if err != nil {
+		panic(WebErr{c, status, err})
+	}
+}
 
+var _ = webMust
+
+// Recovery middleware which enables using the "webMust(...)" function
+// which abuses panics to avoid repetitive boilerplate error handling.
+func (s *Server) MustMiddleware() gin.HandlerFunc {
 	return gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recovered any) {
+		// Handle WebErr types specially.
 		if webErr, ok := recovered.(WebErr); ok {
 			log.Debugf("recovered WebErr -> (%v,%q,%v)",
 				webErr.Status, statusMessage(webErr.Status), webErr.Err)
 
+			// Always print the stack trace for 5xx class errors.
 			if webErr.Status/100 == 5 {
 				log.Errorf("%v\n%v", webErr.Err, string(stack(5)))
 			}
 
+			// Respond with common 404, 500, or JSON responses.
 			switch true {
 			case preferJson(c.Request.Header):
 				c.JSON(webErr.Status, gin.H{"error": statusMessage(webErr.Status)})
@@ -81,14 +92,6 @@ func statusMessage(code int) string {
 	}
 	return message
 }
-
-func webMust(c *gin.Context, status int, err error) {
-	if err != nil {
-		panic(WebErr{c, status, err})
-	}
-}
-
-var _ = webMust
 
 // See https://github.com/gin-gonic/gin/blob/master/recovery.go
 var (
