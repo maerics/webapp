@@ -6,6 +6,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	log "github.com/maerics/golog"
 	"github.com/maerics/goutil"
+
+	// Other supported database drivers can go here
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type DB struct{ *sqlx.DB }

@@ -14,8 +14,6 @@ import (
 	log "github.com/maerics/golog"
 	util "github.com/maerics/goutil"
 	cobra "github.com/spf13/cobra"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func init() {
