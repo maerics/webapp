@@ -19,7 +19,7 @@ A Go backend web application skeleton with opinionated logging and basic databas
    git clone https://github.com/maerics/webapp
    cd webapp
    ```
-1. Globally replace the token `webapp` with your app name, e.g. "myapp":
+1. Globally replace the string "webapp" with your app name, e.g. "myapp":
    ```sh
    sed -i '' s/webapp/myapp/g $(git grep -lw webapp)
    ```

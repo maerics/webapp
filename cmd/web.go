@@ -18,7 +18,7 @@ var webCmd = &cobra.Command{
 	Short: "Start the web server.",
 	Run: func(cmd *cobra.Command, args []string) {
 		config := web.Config{
-			Environment:  util.Getenv(Env_ENV, web.EnvDevelopment),
+			Environment:  util.Getenv(Env_ENV, "development"),
 			PublicAssets: PublicAssets,
 		}
 		db := log.Must1(db.Connect(util.MustEnv(Env_DATABASE_URL)))

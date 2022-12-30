@@ -50,7 +50,8 @@ func NewServer(config Config, database *db.DB) (*Server, error) {
 }
 
 func (s *Server) Run() error {
-	log.Debugf("starting web server with config %v", util.MustJson(s.Config))
+	log.Printf("starting web server in %q environment", s.Config.Environment)
+	log.Debugf("using config %v", util.MustJson(s.Config))
 	return s.Engine.Run()
 }
 
