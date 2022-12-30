@@ -1,19 +1,27 @@
 package web
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/maerics/golog"
+	"github.com/maerics/goutil"
 )
 
 func (s *Server) ApplyRoutes() {
+	// Simple examples.
 	s.GET("/hello", hello)
 	s.GET("/panic", doPanic)
+	s.GET("/query", s.dbQuery)
 
-	apiv1 := s.Group("/api/v1")
+	// API group example with basic auth.
+	accounts := gin.Accounts{"admin": "secret"}
+	apiv1 := s.Group("/api/v1", gin.BasicAuth(accounts))
 	{
 		apiv1.GET("/users", s.ListUsers())
 		apiv1.PUT("/users", s.CreateUser())
@@ -46,4 +54,40 @@ func doPanic(c *gin.Context) {
 		panic(message)
 	}
 	panic(errors.New(message))
+}
+
+func (s *Server) dbQuery(c *gin.Context) {
+	query, err := url.QueryUnescape(c.Request.URL.RawQuery)
+	webMust(c, 400, err)
+	if query == "" {
+		webMust(c, 400, fmt.Errorf(`missing query string as SQL query`))
+	}
+	golog.Debugf("OK: query=%q", query)
+
+	rows, err := s.DB.Query(query)
+	if err != nil {
+		c.JSON(400, gin.H{"error": fmt.Sprintf("invalid query: %v", err)})
+		return
+	}
+
+	columns, err := rows.Columns()
+	webMust(c, 500, err)
+
+	c.Header("Content-Type", "application/ljson+json")
+	bufout := bufio.NewWriterSize(c.Writer, 1024*1024)
+	values := make([]any, len(columns))
+	scanArgs := make([]any, len(columns))
+	for i := range values {
+		scanArgs[i] = &values[i]
+	}
+
+	for rows.Next() {
+		golog.Must(rows.Scan(scanArgs...))
+		fmt.Fprintf(bufout, "%v\n", goutil.MustJson(goutil.OrderedJsonObj{
+			Keys:   columns,
+			Values: values,
+			Nulls:  true,
+		}))
+	}
+	golog.Must(bufout.Flush())
 }
