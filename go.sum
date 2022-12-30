@@ -47,8 +47,6 @@ github.com/lib/pq v1.2.0 h1:LXpIM/LZ5xGFhOpXAQUIMM1HdyqzVYM13zNdjCEEcA0=
 github.com/lib/pq v1.2.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/maerics/golog v0.0.0-20221219001014-052ba3967102 h1:xVop8am5FX35CgICMOchlLS0zHuyWOqsqM33KS8Q/vA=
 github.com/maerics/golog v0.0.0-20221219001014-052ba3967102/go.mod h1:YCigP4l9Gp14YWLP/i+/U3J/c/OFNURlQAhTLJYJTuM=
-github.com/maerics/goutil v0.0.0-20221228222551-d8df395a6b42 h1:uDHKiYrQ88UXpj4ptBIcdpsNA+8dgU0altJU/RzPJl8=
-github.com/maerics/goutil v0.0.0-20221228222551-d8df395a6b42/go.mod h1:cIuKlbjijIQgYJKbjhMhvpGa9bLzzwV7ZjvTtKPRoV0=
 github.com/maerics/goutil v0.0.0-20221230205021-2d1085e577d1 h1:edc1XgsIG/zrTq+6uyv9iTUBLjwtxMvdE9F8vQj5Fjg=
 github.com/maerics/goutil v0.0.0-20221230205021-2d1085e577d1/go.mod h1:cIhnla/RwGkdW/wz5XJrPQLWDjQJLcGcZju0hzJVAnY=
 github.com/mattn/go-isatty v0.0.16 h1:bq3VjFmv/sOjHtdEhmkEV4x1AJtvUvOJ2PFAZ5+peKQ=
@@ -89,8 +87,6 @@ github.com/ugorji/go/codec v1.2.8/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZg
 golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/crypto v0.4.0 h1:UVQgzMY87xqpKNgb+kDsll2Igd33HszWHFLmpaRMq/8=
 golang.org/x/crypto v0.4.0/go.mod h1:3quD/ATkf6oY+rnes5c3ExXTbLc8mueNue5/DoinL80=
-golang.org/x/exp v0.0.0-20221227203929-1b447090c38c h1:Govq2W3bnHJimHT2ium65kXcI7ZzTniZHcFATnLJM0Q=
-golang.org/x/exp v0.0.0-20221227203929-1b447090c38c/go.mod h1:CxIveKay+FTh1D0yPZemJVgC/95VzuuOLq5Qi4xnoYc=
 golang.org/x/exp v0.0.0-20221230185412-738e83a70c30 h1:m9O6OTJ627iFnN2JIWfdqlZCzneRO6EEBsHXI25P8ws=
 golang.org/x/exp v0.0.0-20221230185412-738e83a70c30/go.mod h1:CxIveKay+FTh1D0yPZemJVgC/95VzuuOLq5Qi4xnoYc=
 golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=

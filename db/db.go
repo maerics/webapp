@@ -3,9 +3,9 @@ package db
 import (
 	"net/url"
 
+	"github.com/iancoleman/strcase"
 	"github.com/jmoiron/sqlx"
 	log "github.com/maerics/golog"
-	"github.com/maerics/goutil"
 
 	// Other supported database drivers can go here
 	_ "github.com/mattn/go-sqlite3"
@@ -32,7 +32,7 @@ func Connect(dburl string) (*DB, error) {
 		return nil, err
 	}
 
-	sqlxdb.MapperFunc(goutil.ToSnake)
+	sqlxdb.MapperFunc(strcase.ToSnake)
 
 	log.Printf("connected to database at %q", u.Redacted())
 	return &DB{sqlxdb}, nil
