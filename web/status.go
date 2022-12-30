@@ -5,14 +5,14 @@ import (
 	util "github.com/maerics/goutil"
 )
 
-func (s *Server) Status() gin.HandlerFunc {
-	type StatusDTO struct {
-		Status string      `json:"status"`
-		Env    string      `json:"env"`
-		Net    NetworkInfo `json:"network"`
-		HTTP   HTTPInfo    `json:"http"`
-	}
+type StatusDTO struct {
+	Status string      `json:"status"`
+	Env    string      `json:"env"`
+	Net    NetworkInfo `json:"network"`
+	HTTP   HTTPInfo    `json:"http"`
+}
 
+func (s *Server) Status() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		headers := map[string]string{}
 		for k := range c.Request.Header {

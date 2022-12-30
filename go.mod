@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/gabriel-vasile/mimetype v1.4.1
 	github.com/gin-gonic/gin v1.8.2
+	github.com/go-playground/assert/v2 v2.2.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/maerics/golog v0.0.0-20221219001014-052ba3967102
 	github.com/maerics/goutil v0.0.0-20221228222551-d8df395a6b42
