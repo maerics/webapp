@@ -58,7 +58,7 @@ var executeCmd = &cobra.Command{
 		dburl := util.MustEnv(Env_DATABASE_URL)
 		db := log.Must1(db.Connect(dburl))
 		tx := db.MustBegin()
-		log.Printf("executing query:\n\n  %v\n\n", query)
+		log.Printf("executing query:\n\n    %v\n\n", query)
 		t0 := time.Now()
 
 		// Print the affected rows and last insert id, if applicable.
@@ -86,8 +86,8 @@ var selectCmd = &cobra.Command{
 	Aliases: []string{"sel", "s"},
 	Short:   "Print the results of a database query from STDIN to STDOUT.",
 	Run: func(cmd *cobra.Command, args []string) {
-		iscsv := optDbSelectCsvOutput
-		if iscsv {
+		outputcsv := optDbSelectCsvOutput
+		if outputcsv {
 			if len(optDbSelectCsvSep) != 1 {
 				log.Fatalf("CSV separator must be one byte long, got %q", optDbSelectCsvSep)
 			}
@@ -101,7 +101,7 @@ var selectCmd = &cobra.Command{
 		// Execute the query.
 		dburl := util.MustEnv(Env_DATABASE_URL)
 		db := log.Must1(db.Connect(dburl))
-		log.Printf("executing query:\n\n  %v\n\n", query)
+		log.Printf("executing query:\n\n    %v\n\n", query)
 		rows := log.Must1(db.Query(query))
 
 		// Inspect the result set column types.
@@ -114,7 +114,7 @@ var selectCmd = &cobra.Command{
 
 		// Setup the optional CSV writer.
 		var w *csv.Writer
-		if iscsv {
+		if outputcsv {
 			w = csv.NewWriter(os.Stdout)
 			w.Comma = rune(optDbSelectCsvSep[0])
 			log.Must(w.Write(columns))
@@ -128,7 +128,7 @@ var selectCmd = &cobra.Command{
 			log.Must(rows.Scan(scanArgs...))
 
 			// Print the JSON or CSV result.
-			if iscsv {
+			if outputcsv {
 				row := make([]string, len(values))
 				for i, v := range values {
 					if v != nil {
@@ -137,17 +137,11 @@ var selectCmd = &cobra.Command{
 				}
 				log.Must(w.Write(row))
 			} else {
-				/* TODO: retain column ordering
-				obj := map[string]any{}
-				for i, v := range values {
-					obj[columns[i]] = v
-				}
-				*/
 				log.Must(enc.Encode(orderedJsonObj{columns, values}))
 			}
 		}
 
-		if iscsv {
+		if outputcsv {
 			w.Flush()
 			log.Must(w.Error())
 		}
