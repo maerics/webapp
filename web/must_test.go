@@ -3,12 +3,14 @@ package web
 import (
 	"net/http"
 	"testing"
+
+	"github.com/go-playground/assert/v2"
 )
 
 func TestPreferJson(t *testing.T) {
 	type h http.Header
 
-	for i, eg := range []struct {
+	for _, eg := range []struct {
 		acceptHeader h
 		expected     bool
 	}{
@@ -24,6 +26,6 @@ func TestPreferJson(t *testing.T) {
 		{h{"Accept": {"*"}, "Content-Type": {"text/json"}}, true},
 		{h{"Content-Type": {"text/json"}}, true},
 	} {
-		assertEqual(t, i, eg.expected, preferJson(http.Header(eg.acceptHeader)))
+		assert.Equal(t, eg.expected, preferJson(http.Header(eg.acceptHeader)))
 	}
 }
