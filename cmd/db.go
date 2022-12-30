@@ -137,7 +137,7 @@ var selectCmd = &cobra.Command{
 				}
 				log.Must(w.Write(row))
 			} else {
-				log.Must(enc.Encode(orderedJsonObj{columns, values}))
+				log.Must(enc.Encode(util.OrderedJsonObj{Keys: columns, Values: values}))
 			}
 		}
 
@@ -147,26 +147,6 @@ var selectCmd = &cobra.Command{
 		}
 		log.Printf("query returned %v row(s)", count)
 	},
-}
-
-type orderedJsonObj struct {
-	columns []string
-	values  []any
-}
-
-func (o orderedJsonObj) MarshalJSON() ([]byte, error) {
-	buf := &bytes.Buffer{}
-	buf.WriteByte('{')
-	for i, c := range o.columns {
-		if bs, err := json.Marshal(o.values[i]); err != nil {
-			return nil, err
-		} else {
-			fmt.Fprintf(buf, "%q:%v,", c, string(bs))
-		}
-	}
-	bs := buf.Bytes()
-	bs[len(bs)-1] = '}'
-	return bs, nil
 }
 
 var migrateCmd = &cobra.Command{

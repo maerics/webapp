@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.8.2
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/maerics/golog v0.0.0-20221219001014-052ba3967102
-	github.com/maerics/goutil v0.0.0-20221228222551-d8df395a6b42
+	github.com/maerics/goutil v0.0.0-20221230205021-2d1085e577d1
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
 )
@@ -29,7 +29,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/ugorji/go/codec v1.2.8 // indirect
 	golang.org/x/crypto v0.4.0 // indirect
-	golang.org/x/exp v0.0.0-20221227203929-1b447090c38c // indirect
+	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30 // indirect
 	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
