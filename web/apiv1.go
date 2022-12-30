@@ -11,10 +11,7 @@ import (
 func (s *Server) ListUsers() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		users := []models.User{}
-		if err := s.DB.Select(&users, "SELECT * FROM users ORDER BY id"); err != nil {
-			c.AbortWithError(500, err)
-			return
-		}
+		webMust(c, 500, s.DB.Select(&users, "SELECT * FROM users ORDER BY id"))
 		c.JSON(200, users)
 	}
 }
