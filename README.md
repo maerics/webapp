@@ -23,9 +23,14 @@ A Go backend web application skeleton with opinionated logging and basic databas
    ```sh
    sed -i '' s/webapp/myapp/g $(git grep -lw webapp)
    ```
-1. Run `make` to ensure tests pass and remove the git directory:
+1. Run `make` to ensure tests pass (and reset git):
    ```
-   make && rm -rf .git
+   export TEST_DATABASE_URL='sqlite3://test.db'
+   make \
+     && rm -rf .git \
+     && git init    \
+     && git add .   \
+     && git commit -m 'Initial commit'
    ```
 1. Remove this "Setup" section from the README.
 
