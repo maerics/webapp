@@ -63,13 +63,11 @@ func getNetworkInfo(c *gin.Context) NetworkInfo {
 	}
 
 	return NetworkInfo{
-		ClientIP: &clientIP,
-		// OutboundIP:    getOutboundIP(),
-		// OutboundDNSIP: getOutboundDNSIP(),
+		ClientIP:      &clientIP,
+		OutboundIP:    getOutboundIP(),
+		OutboundDNSIP: getOutboundDNSIP(),
 	}
 }
-
-var _ = getOutboundIP
 
 func getOutboundIP() *string {
 	res, err := http.Get("http://checkip.amazonaws.com/")
@@ -90,12 +88,10 @@ func getOutboundIP() *string {
 	return &ip
 }
 
-var _ = getOutboundDNSIP
-
 func getOutboundDNSIP() *string {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
-		log.Errorf("failed to determine outbound IP: %v", err)
+		log.Errorf("failed to determine outbound DNS IP: %v", err)
 	}
 	defer conn.Close()
 
