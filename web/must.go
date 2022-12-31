@@ -31,6 +31,8 @@ var _ = webMust
 // Recovery middleware which enables using the "webMust(...)" function
 // which abuses panics to avoid repetitive boilerplate error handling.
 func (s *Server) MustMiddleware() gin.HandlerFunc {
+	const jsonContentType = "text/json; charset=utf-8"
+
 	return gin.CustomRecoveryWithWriter(io.Discard, func(c *gin.Context, recovered any) {
 		// Handle WebErr types specially.
 		if webErr, ok := recovered.(WebErr); ok {
@@ -42,22 +44,34 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 				log.Errorf("%v\n%v", webErr.Err, string(stack(5)))
 			}
 
+			respond404 := func() { s.mustServeStatic(c, 404, "404.html") }
+			respond500 := func() { s.mustServeStatic(c, webErr.Status, "500.html") }
+			if preferJson(c.Request.Header) {
+				respond404 = func() { c.Data(404, jsonContentType, []byte(`{"error":"not found"}`)) }
+				respond500 = func() { c.Data(500, jsonContentType, []byte(`{"error":"internal server error"}`)) }
+			}
+
 			// Respond with common 404, 500, or JSON responses.
 			switch true {
-			case preferJson(c.Request.Header):
-				c.JSON(webErr.Status, gin.H{"error": statusMessage(webErr.Status)})
 			case webErr.Status == 404:
-				s.mustServeStatic(c, 404, "404.html")
+				respond404()
+			case webErr.Status/100 == 4:
+				c.JSON(webErr.Status, gin.H{"error": webErr.Err.Error()})
 			case webErr.Status/100 == 5:
-				s.mustServeStatic(c, webErr.Status, "500.html")
+				respond500()
 			default:
 				c.JSON(webErr.Status, gin.H{"error": statusMessage(webErr.Status)})
 			}
+			c.Abort()
 			return
 		}
 
 		// Fallback with 500 internal server error.
-		s.mustServeStatic(c, 500, "500.html")
+		if preferJson(c.Request.Header) {
+			c.Data(500, jsonContentType, []byte(`{"error":"internal server error"}`))
+		} else {
+			s.mustServeStatic(c, 500, "500.html")
+		}
 		c.AbortWithError(500, fmt.Errorf("%v", recovered))
 		log.Errorf("panic recovered: %v\n%v", recovered, string(stack(4)))
 	})
