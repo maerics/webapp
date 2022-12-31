@@ -20,6 +20,7 @@ var webCmd = &cobra.Command{
 		config := web.Config{
 			Environment: util.Getenv(Env_ENV, "development"),
 			Build: web.BuildInfo{
+				Dirty:     BuildDirty,
 				Branch:    BuildBranch,
 				Version:   BuildVersion,
 				Timestamp: BuildTimestamp,

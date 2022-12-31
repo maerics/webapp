@@ -10,7 +10,8 @@ type Config struct {
 }
 
 type BuildInfo struct {
-	Branch    string `json:"branch"`
-	Version   string `json:"version"`
-	Timestamp string `json:"timestamp"`
+	Dirty     string `json:"dirty,omitempty"`
+	Branch    string `json:"branch,omitempty"`
+	Version   string `json:"version,omitempty"`
+	Timestamp string `json:"timestamp,omitempty"`
 }

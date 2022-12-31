@@ -17,6 +17,7 @@ const (
 )
 
 var (
+	BuildDirty     string
 	BuildBranch    string
 	BuildVersion   string
 	BuildTimestamp string
