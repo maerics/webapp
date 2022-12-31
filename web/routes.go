@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/maerics/golog"
-	"github.com/maerics/goutil"
+	log "github.com/maerics/golog"
+	util "github.com/maerics/goutil"
 )
 
 func (s *Server) ApplyRoutes() {
@@ -61,7 +61,7 @@ func (s *Server) dbQuery(c *gin.Context) {
 	bs, err := io.ReadAll(c.Request.Body)
 	webMust(c, 500, err)
 	query := string(bs)
-	golog.Debugf("OK: query=%q", query)
+	log.Debugf("OK: query=%q", query)
 
 	rows, err := s.DB.Query(query)
 	if err != nil {
@@ -80,12 +80,12 @@ func (s *Server) dbQuery(c *gin.Context) {
 	}
 
 	for rows.Next() {
-		golog.Must(rows.Scan(scanArgs...))
-		fmt.Fprintf(bufout, "%v\n", goutil.MustJson(goutil.OrderedJsonObj{
+		log.Must(rows.Scan(scanArgs...))
+		fmt.Fprintf(bufout, "%v\n", util.MustJson(util.OrderedJsonObj{
 			Keys:   columns,
 			Values: values,
 			Nulls:  true,
 		}))
 	}
-	golog.Must(bufout.Flush())
+	log.Must(bufout.Flush())
 }

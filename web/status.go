@@ -1,7 +1,13 @@
 package web
 
 import (
+	"io/ioutil"
+	"net"
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
+	log "github.com/maerics/golog"
 	util "github.com/maerics/goutil"
 )
 
@@ -58,5 +64,42 @@ func getNetworkInfo(c *gin.Context) NetworkInfo {
 
 	return NetworkInfo{
 		ClientIP: &clientIP,
+		// OutboundIP:    getOutboundIP(),
+		// OutboundDNSIP: getOutboundDNSIP(),
 	}
+}
+
+var _ = getOutboundIP
+
+func getOutboundIP() *string {
+	res, err := http.Get("http://checkip.amazonaws.com/")
+	if err != nil {
+		log.Errorf("failed to determine outbound IP: %v", err)
+		return nil
+	}
+	if res.StatusCode != 200 {
+		log.Errorf("unexpected response for outbound IP: %v", res.StatusCode)
+		return nil
+	}
+	bs, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Errorf("error reading outbound IP: %v", err)
+		return nil
+	}
+	ip := strings.TrimSpace(string(bs))
+	return &ip
+}
+
+var _ = getOutboundDNSIP
+
+func getOutboundDNSIP() *string {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Errorf("failed to determine outbound IP: %v", err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+	ip := localAddr.IP.String()
+	return &ip
 }
