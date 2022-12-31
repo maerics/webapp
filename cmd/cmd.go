@@ -51,7 +51,7 @@ func Run() {
 
 var rootCmd = &cobra.Command{
 	Use:   "webapp",
-	Short: "A database connected web application.",
+	Short: "A database connected web application",
 	Run: func(cmd *cobra.Command, args []string) {
 		if optCmdShowVersion {
 			fmt.Println(mustGetVersionString())
@@ -64,7 +64,7 @@ var rootCmd = &cobra.Command{
 var versionCmd = &cobra.Command{
 	Use:     "version",
 	Aliases: []string{"ver", "v"},
-	Short:   "Print build and version information.",
+	Short:   "Show version and build information",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println(mustGetVersionString())
 	},

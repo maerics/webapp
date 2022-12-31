@@ -40,14 +40,14 @@ var (
 
 var dbCmd = &cobra.Command{
 	Use:   "db",
-	Short: "Manage the database.",
+	Short: "Manage the database",
 	Run:   func(cmd *cobra.Command, args []string) { cmd.Help() },
 }
 
 var executeCmd = &cobra.Command{
 	Use:     "execute",
 	Aliases: []string{"exec", "e"},
-	Short:   "Execute SQL commands from STDIN.",
+	Short:   "Execute SQL commands from STDIN",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Read the query from STDIN.
 		buf := &bytes.Buffer{}
@@ -84,7 +84,7 @@ var executeCmd = &cobra.Command{
 var selectCmd = &cobra.Command{
 	Use:     "select",
 	Aliases: []string{"sel", "s"},
-	Short:   "Print the results of a database query from STDIN to STDOUT.",
+	Short:   "Print the results of a database query from STDIN to STDOUT",
 	Run: func(cmd *cobra.Command, args []string) {
 		outputcsv := optDbSelectCsvOutput
 		if outputcsv {
@@ -151,7 +151,7 @@ var selectCmd = &cobra.Command{
 
 var migrateCmd = &cobra.Command{
 	Use:   "migrate",
-	Short: "Run the database migrations.",
+	Short: "Run the database migrations",
 	Run: func(cmd *cobra.Command, args []string) {
 		dburl := util.MustEnv(Env_DATABASE_URL)
 		db := log.Must1(db.Connect(dburl))

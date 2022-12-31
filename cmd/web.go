@@ -17,7 +17,7 @@ func init() {
 var webCmd = &cobra.Command{
 	Use:     "web",
 	Aliases: []string{"w"},
-	Short:   "Start the web server.",
+	Short:   "Start the web server",
 	Run: func(cmd *cobra.Command, args []string) {
 		config := web.Config{
 			Environment: util.Getenv(Env_ENV, "development"),
