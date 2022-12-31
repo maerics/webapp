@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"net/url"
+	"io"
 	"strconv"
 	"strings"
 
@@ -17,7 +17,7 @@ func (s *Server) ApplyRoutes() {
 	// Simple examples.
 	s.GET("/hello", hello)
 	s.GET("/panic", doPanic)
-	s.GET("/query", s.dbQuery)
+	s.POST("/query", s.dbQuery)
 
 	// API group example with basic auth.
 	accounts := gin.Accounts{"admin": "secret"}
@@ -58,25 +58,21 @@ func doPanic(c *gin.Context) {
 
 // Stream SQL query results as JSON lines.
 func (s *Server) dbQuery(c *gin.Context) {
-	rawquery := c.Request.URL.RawQuery
-	if rawquery == "" {
-		webMust(c, 400, fmt.Errorf(`missing query string as SQL query`))
-	}
-	query, err := url.QueryUnescape(rawquery)
-	webMust(c, 400, err)
+	bs, err := io.ReadAll(c.Request.Body)
+	webMust(c, 500, err)
+	query := string(bs)
 	golog.Debugf("OK: query=%q", query)
 
 	rows, err := s.DB.Query(query)
 	if err != nil {
-		c.JSON(400, gin.H{"error": fmt.Sprintf("invalid query: %v", err)})
-		return
+		webMust(c, 400, fmt.Errorf("invalid query: %v", err))
 	}
 
 	columns, err := rows.Columns()
 	webMust(c, 500, err)
 
 	c.Header("Content-Type", "application/ljson+json")
-	bufout := bufio.NewWriterSize(c.Writer, 4*1024)
+	bufout := bufio.NewWriterSize(c.Writer, 2*1024)
 	values := make([]any, len(columns))
 	scanArgs := make([]any, len(columns))
 	for i := range values {
