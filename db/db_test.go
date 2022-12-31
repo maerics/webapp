@@ -8,8 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const Env_TEST_DATABASE_URL = "TEST_DATABASE_URL"
-
 func MustConnectTestDB() *DB {
 	return golog.Must1(Connect(goutil.MustEnv(Env_TEST_DATABASE_URL)))
 }

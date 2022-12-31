@@ -37,3 +37,5 @@ func Connect(dburl string) (*DB, error) {
 	log.Printf("connected to database at %q", u.Redacted())
 	return &DB{sqlxdb}, nil
 }
+
+const Env_TEST_DATABASE_URL = "TEST_DATABASE_URL"
