@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"os"
 	"runtime/debug"
 	"webapp/web"
 
@@ -25,8 +26,15 @@ var (
 	PublicAssets fs.FS
 )
 
+var (
+	optCmdShowVersion bool
+)
+
 func init() {
 	rootCmd.AddCommand(versionCmd)
+
+	rootCmd.Flags().BoolVarP(&optCmdShowVersion,
+		"version", "v", false, "show version and build information")
 }
 
 func Run() {
@@ -44,7 +52,13 @@ func Run() {
 var rootCmd = &cobra.Command{
 	Use:   "webapp",
 	Short: "A database connected web application.",
-	Run:   func(cmd *cobra.Command, args []string) { cmd.Help() },
+	Run: func(cmd *cobra.Command, args []string) {
+		if optCmdShowVersion {
+			fmt.Println(mustGetVersionString())
+			os.Exit(0)
+		}
+		cmd.Help()
+	},
 }
 
 var versionCmd = &cobra.Command{
@@ -52,10 +66,14 @@ var versionCmd = &cobra.Command{
 	Aliases: []string{"ver", "v"},
 	Short:   "Print build and version information.",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(string(log.Must1(json.MarshalIndent(web.BuildInfo{
-			Branch:    BuildBranch,
-			Version:   BuildVersion,
-			Timestamp: BuildTimestamp,
-		}, "", "  "))))
+		fmt.Println(mustGetVersionString())
 	},
+}
+
+func mustGetVersionString() string {
+	return string(log.Must1(json.MarshalIndent(web.BuildInfo{
+		Branch:    BuildBranch,
+		Version:   BuildVersion,
+		Timestamp: BuildTimestamp,
+	}, "", "  ")))
 }
