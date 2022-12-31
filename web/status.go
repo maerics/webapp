@@ -1,7 +1,7 @@
 package web
 
 import (
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -81,7 +81,7 @@ func getOutboundIP() *string {
 		log.Errorf("unexpected response for outbound IP: %v", res.StatusCode)
 		return nil
 	}
-	bs, err := ioutil.ReadAll(res.Body)
+	bs, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Errorf("error reading outbound IP: %v", err)
 		return nil
