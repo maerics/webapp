@@ -2,8 +2,10 @@ package web
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 	"webapp/db"
@@ -26,24 +28,34 @@ func InitDB(t *testing.T) *Server {
 	return server
 }
 
-func TestListUsersNoAuth(t *testing.T) {
+func TestUsersApiNoAuth(t *testing.T) {
 	server := InitDB(t)
 
-	res := httptest.NewRecorder()
-	req, err := http.NewRequest(http.MethodGet, "/api/v1/users", nil)
-	tmust(t, err)
-	server.ServeHTTP(res, req)
+	newReq := func(method, route string, body io.Reader) func() (*http.Request, error) {
+		return func() (*http.Request, error) { return http.NewRequest(method, route, body) }
+	}
 
-	assert.Equal(t, 401, res.Code)
+	for _, requestFunc := range []func() (*http.Request, error){
+		newReq("GET", "/api/v1/users", nil),
+		newReq("PUT", "/api/v1/users", strings.NewReader(`{"name":"Alice"}`)),
+		newReq("POST", "/api/v1/users/1", strings.NewReader(`{"name":"Bob"}`)),
+		newReq("DELETE", "/api/v1/users/1", nil),
+	} {
+		req, err := requestFunc()
+		tmust(t, err)
+		res := httptest.NewRecorder()
+		server.ServeHTTP(res, req)
+		assert.Equal(t, 401, res.Code)
+	}
 }
 
 func TestListUsersEmptyDB(t *testing.T) {
 	server := InitDB(t)
 
-	res := httptest.NewRecorder()
-	req, err := http.NewRequest(http.MethodGet, "/api/v1/users", nil)
+	req, err := http.NewRequest("GET", "/api/v1/users", nil)
 	req.SetBasicAuth("admin", "secret")
 	tmust(t, err)
+	res := httptest.NewRecorder()
 	server.ServeHTTP(res, req)
 
 	assert.Equal(t, 200, res.Code)
@@ -56,10 +68,10 @@ func TestListUsersWithOneUser(t *testing.T) {
 	_, err := server.DB.Exec("INSERT INTO users (name) VALUES ('Alice')")
 	tmust(t, err)
 
-	res := httptest.NewRecorder()
-	req, err := http.NewRequest(http.MethodGet, "/api/v1/users", nil)
+	req, err := http.NewRequest("GET", "/api/v1/users", nil)
 	req.SetBasicAuth("admin", "secret")
 	tmust(t, err)
+	res := httptest.NewRecorder()
 	server.ServeHTTP(res, req)
 
 	assert.Equal(t, 200, res.Code)
@@ -75,4 +87,76 @@ func TestListUsersWithOneUser(t *testing.T) {
 	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.CreatedAt))
 	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.UpdatedAt))
 	assert.Equal(t, user.CreatedAt, user.UpdatedAt)
+}
+
+func TestCreateUser(t *testing.T) {
+	server := InitDB(t)
+
+	reqBody := `{"name":"Bob"}`
+	req, err := http.NewRequest("PUT", "/api/v1/users", strings.NewReader(reqBody))
+	req.SetBasicAuth("admin", "secret")
+	tmust(t, err)
+	res := httptest.NewRecorder()
+	server.ServeHTTP(res, req)
+
+	assert.Equal(t, 200, res.Code)
+	var user models.User
+	tmust(t, json.Unmarshal(res.Body.Bytes(), &user))
+	assert.Equal(t, 1, user.Id)
+	assert.Equal(t, "Bob", user.Name)
+
+	epsilon, err := time.ParseDuration("5s")
+	tmust(t, err)
+	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.CreatedAt))
+	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.UpdatedAt))
+	assert.Equal(t, user.CreatedAt, user.UpdatedAt)
+}
+
+func TestUpdateUser(t *testing.T) {
+	server := InitDB(t)
+
+	_, err := server.DB.Exec("INSERT INTO users (name) VALUES ('Alice')")
+	tmust(t, err)
+	t1s, err := time.ParseDuration("1s")
+	tmust(t, err)
+	time.Sleep(t1s)
+
+	// Update the user
+	reqBody := `{"name":"Bob"}`
+	req, err := http.NewRequest("POST", "/api/v1/users/1", strings.NewReader(reqBody))
+	req.SetBasicAuth("admin", "secret")
+	tmust(t, err)
+	res := httptest.NewRecorder()
+	server.ServeHTTP(res, req)
+
+	assert.Equal(t, 200, res.Code)
+	var user models.User
+	tmust(t, json.Unmarshal(res.Body.Bytes(), &user))
+	assert.Equal(t, 1, user.Id)
+	assert.Equal(t, "Bob", user.Name)
+	assert.Greater(t, *user.UpdatedAt, *user.CreatedAt)
+
+	epsilon, err := time.ParseDuration("5s")
+	tmust(t, err)
+	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.CreatedAt))
+	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.UpdatedAt))
+}
+
+func TestDeleteUser(t *testing.T) {
+	server := InitDB(t)
+
+	_, err := server.DB.Exec("INSERT INTO users (name) VALUES ('Alice')")
+	tmust(t, err)
+
+	// Delete the user
+	req, err := http.NewRequest("DELETE", "/api/v1/users/1", nil)
+	req.SetBasicAuth("admin", "secret")
+	tmust(t, err)
+	res := httptest.NewRecorder()
+	server.ServeHTTP(res, req)
+	assert.Equal(t, 204, res.Code)
+
+	var userCount int
+	tmust(t, server.DB.Get(&userCount, "SELECT COUNT(id) FROM users"))
+	assert.Equal(t, 0, userCount)
 }
