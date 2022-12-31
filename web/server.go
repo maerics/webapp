@@ -15,12 +15,6 @@ import (
 	util "github.com/maerics/goutil"
 )
 
-type Config struct {
-	Environment  string
-	BaseURL      string
-	PublicAssets fs.FS `json:"-"`
-}
-
 type Server struct {
 	*gin.Engine
 	Config Config

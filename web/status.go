@@ -8,6 +8,7 @@ import (
 type StatusDTO struct {
 	Status string      `json:"status"`
 	Env    string      `json:"env"`
+	Build  BuildInfo   `json:"build"`
 	Net    NetworkInfo `json:"network"`
 	HTTP   HTTPInfo    `json:"http"`
 }
@@ -23,9 +24,9 @@ func (s *Server) Status() gin.HandlerFunc {
 			"text/json; charset=utf-8",
 			[]byte(util.MustJson(&StatusDTO{
 				Status: "ok",
-
-				Env: s.Config.Environment,
-				Net: getNetworkInfo(c),
+				Env:    s.Config.Environment,
+				Build:  s.Config.Build,
+				Net:    getNetworkInfo(c),
 				HTTP: HTTPInfo{
 					Host:    c.Request.Host,
 					Method:  c.Request.Method,

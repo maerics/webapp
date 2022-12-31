@@ -1,8 +1,11 @@
 package cmd
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/fs"
 	"runtime/debug"
+	"webapp/web"
 
 	log "github.com/maerics/golog"
 	cobra "github.com/spf13/cobra"
@@ -13,7 +16,17 @@ const (
 	Env_DATABASE_URL = "DATABASE_URL" // The database connection string.
 )
 
-var PublicAssets fs.FS
+var (
+	BuildBranch    string
+	BuildVersion   string
+	BuildTimestamp string
+
+	PublicAssets fs.FS
+)
+
+func init() {
+	rootCmd.AddCommand(versionCmd)
+}
 
 func Run() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
@@ -31,4 +44,17 @@ var rootCmd = &cobra.Command{
 	Use:   "webapp",
 	Short: "A database connected web application.",
 	Run:   func(cmd *cobra.Command, args []string) { cmd.Help() },
+}
+
+var versionCmd = &cobra.Command{
+	Use:     "version",
+	Aliases: []string{"ver", "v"},
+	Short:   "Print build and version information.",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(string(log.Must1(json.MarshalIndent(web.BuildInfo{
+			Branch:    BuildBranch,
+			Version:   BuildVersion,
+			Timestamp: BuildTimestamp,
+		}, "", "  "))))
+	},
 }
