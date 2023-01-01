@@ -7,6 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.8.2
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jmoiron/sqlx v1.3.5
+	github.com/lib/pq v1.10.7
 	github.com/maerics/golog v0.0.0-20221219001014-052ba3967102
 	github.com/maerics/goutil v0.0.0-20221230205021-2d1085e577d1
 	github.com/spf13/cobra v1.6.1

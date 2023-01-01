@@ -8,6 +8,7 @@ import (
 	log "github.com/maerics/golog"
 
 	// Other supported database drivers can go here
+	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 )
 

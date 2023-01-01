@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -79,7 +80,7 @@ func TestListUsersWithOneUser(t *testing.T) {
 	tmust(t, json.Unmarshal(res.Body.Bytes(), &users))
 	assert.Equal(t, 1, len(users))
 	user := users[0]
-	assert.Equal(t, 1, user.Id)
+	assert.LessOrEqual(t, 1, user.Id)
 	assert.Equal(t, "Alice", user.Name)
 
 	epsilon, err := time.ParseDuration("5s")
@@ -102,7 +103,7 @@ func TestCreateUser(t *testing.T) {
 	assert.Equal(t, 200, res.Code)
 	var user models.User
 	tmust(t, json.Unmarshal(res.Body.Bytes(), &user))
-	assert.Equal(t, 1, user.Id)
+	assert.LessOrEqual(t, 1, user.Id)
 	assert.Equal(t, "Bob", user.Name)
 
 	epsilon, err := time.ParseDuration("5s")
@@ -115,15 +116,16 @@ func TestCreateUser(t *testing.T) {
 func TestUpdateUser(t *testing.T) {
 	server := InitDB(t)
 
-	_, err := server.DB.Exec("INSERT INTO users (name) VALUES ('Alice')")
-	tmust(t, err)
+	var userId int
+	tmust(t, server.DB.Get(&userId, "INSERT INTO users (name) VALUES ('Alice') RETURNING id"))
 	t1s, err := time.ParseDuration("1s")
 	tmust(t, err)
 	time.Sleep(t1s)
 
 	// Update the user
 	reqBody := `{"name":"Bob"}`
-	req, err := http.NewRequest("POST", "/api/v1/users/1", strings.NewReader(reqBody))
+	uri := fmt.Sprintf("/api/v1/users/%v", userId)
+	req, err := http.NewRequest("POST", uri, strings.NewReader(reqBody))
 	req.SetBasicAuth("admin", "secret")
 	tmust(t, err)
 	res := httptest.NewRecorder()
@@ -132,7 +134,7 @@ func TestUpdateUser(t *testing.T) {
 	assert.Equal(t, 200, res.Code)
 	var user models.User
 	tmust(t, json.Unmarshal(res.Body.Bytes(), &user))
-	assert.Equal(t, 1, user.Id)
+	assert.LessOrEqual(t, 1, user.Id)
 	assert.Equal(t, "Bob", user.Name)
 	assert.Greater(t, *user.UpdatedAt, *user.CreatedAt)
 
@@ -145,11 +147,12 @@ func TestUpdateUser(t *testing.T) {
 func TestDeleteUser(t *testing.T) {
 	server := InitDB(t)
 
-	_, err := server.DB.Exec("INSERT INTO users (name) VALUES ('Alice')")
-	tmust(t, err)
+	var userId int
+	tmust(t, server.DB.Get(&userId, "INSERT INTO users (name) VALUES ('Alice') RETURNING id"))
 
 	// Delete the user
-	req, err := http.NewRequest("DELETE", "/api/v1/users/1", nil)
+	uri := fmt.Sprintf("/api/v1/users/%v", userId)
+	req, err := http.NewRequest("DELETE", uri, nil)
 	req.SetBasicAuth("admin", "secret")
 	tmust(t, err)
 	res := httptest.NewRecorder()
