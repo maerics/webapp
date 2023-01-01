@@ -150,8 +150,9 @@ var selectCmd = &cobra.Command{
 }
 
 var migrateCmd = &cobra.Command{
-	Use:   "migrate",
-	Short: "Run the database migrations",
+	Use:     "migrate",
+	Aliases: []string{"m"},
+	Short:   "Run the database migrations",
 	Run: func(cmd *cobra.Command, args []string) {
 		dburl := util.MustEnv(Env_DATABASE_URL)
 		db := log.Must1(db.Connect(dburl))
