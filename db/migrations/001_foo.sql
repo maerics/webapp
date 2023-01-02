@@ -1,6 +1,0 @@
-CREATE TABLE IF NOT EXISTS users (
-  id         SERIAL PRIMARY KEY,
-  name       TEXT UNIQUE NOT NULL CONSTRAINT name_not_empty CHECK (trim(both from name) <> ''),
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-);
