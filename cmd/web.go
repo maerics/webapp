@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"strings"
 	"webapp/db"
 	"webapp/web"
 
@@ -20,13 +19,8 @@ var webCmd = &cobra.Command{
 	Short:   "Start the web server",
 	Run: func(cmd *cobra.Command, args []string) {
 		config := web.Config{
-			Environment: util.Getenv(Env_ENV, "development"),
-			Build: web.BuildInfo{
-				Dirty:     strings.TrimRight(BuildDirty, ","),
-				Branch:    BuildBranch,
-				Version:   BuildVersion,
-				Timestamp: BuildTimestamp,
-			},
+			Environment:  util.Getenv(Env_ENV, "development"),
+			Build:        web.GetBuildInfo(),
 			PublicAssets: PublicAssets,
 		}
 		db := log.Must1(db.Connect(util.MustEnv(Env_DATABASE_URL)))

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os"
@@ -9,6 +8,7 @@ import (
 	"webapp/web"
 
 	log "github.com/maerics/golog"
+	util "github.com/maerics/goutil"
 	cobra "github.com/spf13/cobra"
 )
 
@@ -71,9 +71,5 @@ var versionCmd = &cobra.Command{
 }
 
 func mustGetVersionString() string {
-	return string(log.Must1(json.MarshalIndent(web.BuildInfo{
-		Branch:    BuildBranch,
-		Version:   BuildVersion,
-		Timestamp: BuildTimestamp,
-	}, "", "  ")))
+	return util.MustJson(web.GetBuildInfo(), true)
 }
