@@ -1,6 +1,6 @@
 all: test
 
-test:
+test: fmt vet
 	go test ./...
 
 build:
@@ -12,6 +12,12 @@ build:
 			-X 'webapp/cmd.BuildTimestamp=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')' \
 			" \
 		.
+
+fmt:
+	go fmt ./...
+
+vet:
+	go vet ./...
 
 clean:
 	rm -f ./webapp ./*.db
