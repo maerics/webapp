@@ -10,6 +10,7 @@ import (
 	"webapp/db"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/gin-gonic/autotls"
 	"github.com/gin-gonic/gin"
 	log "github.com/maerics/golog"
 	util "github.com/maerics/goutil"
@@ -46,6 +47,12 @@ func NewServer(config Config, database *db.DB) (*Server, error) {
 func (s *Server) Run() error {
 	log.Printf("starting web server in %q environment", s.Config.Environment)
 	log.Debugf("using config %v", util.MustJson(s.Config))
+
+	if s.Config.AutoCertManager != nil {
+		log.Printf("autotls enabled")
+		return autotls.RunWithManager(s, s.Config.AutoCertManager)
+	}
+
 	return s.Engine.Run()
 }
 
