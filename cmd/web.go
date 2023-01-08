@@ -34,7 +34,7 @@ var webCmd = &cobra.Command{
 	Short:   "Start the web server",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		var db *db.DB = nil // log.Must1(db.Connect(util.MustEnv(Env_DATABASE_URL)))
+		db := log.Must1(db.Connect(util.MustEnv(Env_DATABASE_URL)))
 
 		config := web.Config{
 			Environment:  util.Getenv(Env_ENV, "development"),
