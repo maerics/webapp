@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/gabriel-vasile/mimetype v1.4.1
+	github.com/gin-gonic/autotls v0.0.5
 	github.com/gin-gonic/gin v1.8.2
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jmoiron/sqlx v1.3.5
@@ -12,12 +13,12 @@ require (
 	github.com/maerics/goutil v0.0.0-20221230205021-2d1085e577d1
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
+	golang.org/x/crypto v0.4.0
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/gin-gonic/autotls v0.0.5 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.1 // indirect
@@ -30,7 +31,6 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/ugorji/go/codec v1.2.8 // indirect
-	golang.org/x/crypto v0.4.0 // indirect
 	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30 // indirect
 	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde // indirect
