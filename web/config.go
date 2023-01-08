@@ -2,13 +2,10 @@ package web
 
 import (
 	"io/fs"
-	"os"
-	"os/exec"
 	"runtime/debug"
-	"strings"
-
-	log "github.com/maerics/golog"
 )
+
+var Branch string
 
 type Config struct {
 	Environment  string    `json:"env"`
@@ -52,14 +49,8 @@ func getBuildInfo() BuildInfo {
 		bi.Version = settings["vcs.revision"]
 		bi.Timestamp = settings["vcs.time"]
 
-		if bi.Version != "" {
-			cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "head")
-			if branchName, err := cmd.Output(); err == nil {
-				bi.Branch = strings.TrimSpace(string(branchName))
-			} else {
-				log.Errorf("failed to determine git branch name: %v", err)
-				bi.Branch = os.Getenv("GIT_BRANCH")
-			}
+		if Branch != "" {
+			bi.Branch = Branch
 		}
 	}
 	return bi
