@@ -13,4 +13,4 @@ FROM alpine
 WORKDIR /
 COPY --from=builder /src/webapp /webapp
 USER 1001:1001
-CMD ["/webapp", "version"]
+CMD ["/webapp", "web"]
