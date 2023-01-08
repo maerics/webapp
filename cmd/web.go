@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"strings"
 	"webapp/db"
 	"webapp/web"
 
@@ -33,8 +34,12 @@ var webCmd = &cobra.Command{
 	Aliases: []string{"w"},
 	Short:   "Start the web server",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		db := log.Must1(db.Connect(util.MustEnv(Env_DATABASE_URL)))
+		var dbh *db.DB = nil
+		if dburl := strings.TrimSpace(os.Getenv(Env_DATABASE_URL)); dburl != "" {
+			dbh = log.Must1(db.Connect(dburl))
+		} else {
+			log.Printf("skipping database, set %q to connect", Env_DATABASE_URL)
+		}
 
 		config := web.Config{
 			Environment:  util.Getenv(Env_ENV, "development"),
@@ -59,7 +64,7 @@ var webCmd = &cobra.Command{
 			}
 		}
 
-		server := log.Must1(web.NewServer(config, db))
+		server := log.Must1(web.NewServer(config, dbh))
 		log.Must(server.Run())
 	},
 }
