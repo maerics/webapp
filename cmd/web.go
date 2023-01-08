@@ -19,7 +19,7 @@ func init() {
 	webCmd.Flags().StringArrayVarP(&optWebAutotlsHosts,
 		"autotls-hosts", "", nil, "list of hostnames for autotls")
 	webCmd.Flags().StringVarP(&optWebAutotlsDircache,
-		"autotls-dircache", "", "", "autotls dircache location")
+		"autotls-dir", "", "", "autotls dircache location")
 }
 
 var (
@@ -55,7 +55,7 @@ var webCmd = &cobra.Command{
 			if optWebAutotlsDircache != "" {
 				log.Must(os.MkdirAll(optWebAutotlsDircache, os.FileMode(0o755)))
 				config.AutoCertManager.Cache = autocert.DirCache(optWebAutotlsDircache)
-				log.Debugf("autotls-dircache=%#v", optWebAutotlsDircache)
+				log.Debugf("autotls-dir=%#v", optWebAutotlsDircache)
 			}
 		}
 
