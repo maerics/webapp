@@ -40,13 +40,17 @@ A Go backend web application skeleton with opinionated logging and basic databas
    ```sh
    go run . db migrate
    ```
+1. Database seeding via
+   ```sh
+   go run . db seed
+   ```
 1. Custom backend routes go in `web/routes.go`.
 1. Run the webserver on [http://localhost:8080](http://localhost:8080)
    ```sh
    go run . web
    ```
 1. Frontend assets go in `public/` and are hot-reloaded by default.
-1. Running with `GIN_MODE=release` serves embedded assets in `public/` at build time for a single portable executable.
+1. Running with `MODE=release` serves embedded assets in `public/` at build time for a single portable executable.
 1. Custom command line functions go in `cmd`
    ```sh
    go run .     # Print help message for all commands

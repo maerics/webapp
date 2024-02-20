@@ -22,6 +22,7 @@ func init() {
 	dbCmd.AddCommand(selectCmd)
 	dbCmd.AddCommand(executeCmd)
 	dbCmd.AddCommand(migrateCmd)
+	dbCmd.AddCommand(seedCmd)
 
 	executeCmd.Flags().BoolVarP(&optDbExecuteCommit,
 		"commit", "", false, "commit the transaction instead of rolling back")
@@ -157,5 +158,19 @@ var migrateCmd = &cobra.Command{
 		dburl := util.MustEnv(Env_DATABASE_URL)
 		db := log.Must1(db.Connect(dburl))
 		log.Must(db.Migrate())
+	},
+}
+
+var seedCmd = &cobra.Command{
+	Use:   "seed",
+	Short: "Seed the database with example data",
+	Run: func(cmd *cobra.Command, args []string) {
+		dburl := util.MustEnv(Env_DATABASE_URL)
+		db := log.Must1(db.Connect(dburl))
+		log.Must(db.Migrate())
+		if _, err := db.Exec("INSERT INTO users (name) VALUES ($1)", "Testing"); err != nil {
+			log.Fatal(err.Error())
+		}
+		log.Printf("successfully seeded database")
 	},
 }
