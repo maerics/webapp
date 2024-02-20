@@ -3,8 +3,6 @@ package web
 import (
 	"io/fs"
 	"runtime/debug"
-
-	"golang.org/x/crypto/acme/autocert"
 )
 
 var Branch string
@@ -14,8 +12,9 @@ type Config struct {
 	BaseURL string    `json:"base_url"`
 	Build   BuildInfo `json:"build"`
 
-	PublicAssets    fs.FS             `json:"-"`
-	AutoCertManager *autocert.Manager `json:"-"`
+	PublicAssets fs.FS  `json:"-"`
+	Filename500  string `json:"-"`
+	Filename404  string `json:"-"`
 }
 
 type BuildInfo struct {

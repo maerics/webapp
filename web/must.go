@@ -16,6 +16,9 @@ import (
 
 const (
 	ContentTypeTextHTML = "text/html; charset=utf-8"
+
+	DefaultFilename404 = "404.html"
+	DefaultFilename500 = "500.html"
 )
 
 type WebErr struct {
@@ -46,8 +49,10 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 				log.Errorf("%v\n%v", webErr.Err, string(stack(5)))
 			}
 
-			respond404 := func() { s.mustServeStatic(c, 404, "404.html", ContentTypeTextHTML) }
-			respond500 := func() { s.mustServeStatic(c, webErr.Status, "500.html", ContentTypeTextHTML) }
+			filename404 := firstNonEmpty(s.Config.Filename404, DefaultFilename404)
+			filename500 := firstNonEmpty(s.Config.Filename500, DefaultFilename500)
+			respond404 := func() { s.mustServeHTML(c, 404, filename404) }
+			respond500 := func() { s.mustServeHTML(c, webErr.Status, filename500) }
 			if preferJson(c.Request.Header) {
 				respond404 = func() { c.Data(404, jsonContentType, []byte(`{"error":"not found"}`)) }
 				respond500 = func() { c.Data(500, jsonContentType, []byte(`{"error":"internal server error"}`)) }
@@ -72,7 +77,7 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 		if preferJson(c.Request.Header) {
 			c.Data(500, jsonContentType, []byte(`{"error":"internal server error"}`))
 		} else {
-			s.mustServeStatic(c, 500, "500.html", ContentTypeTextHTML)
+			s.mustServeHTML(c, 500, firstNonEmpty(s.Config.Filename500, DefaultFilename500))
 		}
 		c.AbortWithError(500, fmt.Errorf("%v", recovered))
 		log.Errorf("panic recovered: %v\n%v", recovered, string(stack(4)))
@@ -176,4 +181,13 @@ func function(pc uintptr) []byte {
 	}
 	name = bytes.Replace(name, centerDot, dot, -1)
 	return name
+}
+
+func firstNonEmpty(ss ...string) string {
+	for _, s := range ss {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
 }

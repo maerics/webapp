@@ -74,6 +74,10 @@ func (s *Server) notFound(c *gin.Context) {
 	panic(WebErr{c, 404, nil})
 }
 
+func (s *Server) mustServeHTML(c *gin.Context, status int, filename string) {
+	s.mustServeStatic(c, status, filename, ContentTypeTextHTML)
+}
+
 func (s *Server) mustServeStatic(c *gin.Context, status int, filename, contentType string) {
 	f, err := s.FS.Open(filename)
 	if err != nil {
