@@ -24,7 +24,9 @@ type Server struct {
 func NewServer(config Config, database *db.DB) (*Server, error) {
 	gin.SetMode(config.Mode)
 	engine := gin.New()
-	if gin.Mode() != gin.ReleaseMode {
+	if gin.Mode() == gin.ReleaseMode {
+		engine.Use(jsonLogger())
+	} else {
 		engine.Use(gin.Logger())
 	}
 
@@ -89,4 +91,32 @@ func (s *Server) mustServeStatic(c *gin.Context, status int, filename, contentTy
 		panic(err)
 	}
 	c.Data(status, contentType, bs)
+}
+
+func jsonLogger() gin.HandlerFunc {
+	type logMessage struct {
+		Timestamp     string `json:"timestamp"`
+		Status        int    `json:"status"`
+		Method        string `json:"method"`
+		Path          string `json:"path"`
+		Error         string `json:"error,omitempty"`
+		Latency       string `json:"latency"`
+		LatencyMicros int64  `json:"latency_us"`
+		ClientIP      string `json:"client_ip"`
+	}
+
+	return gin.LoggerWithFormatter(
+		func(params gin.LogFormatterParams) string {
+			return util.MustJson(logMessage{
+				Timestamp:     params.TimeStamp.Format(log.TimestampFormat),
+				Status:        params.StatusCode,
+				Method:        params.Method,
+				Path:          params.Path,
+				Error:         params.ErrorMessage,
+				Latency:       params.Latency.String(),
+				LatencyMicros: params.Latency.Microseconds(),
+				ClientIP:      params.ClientIP,
+			}) + "\n"
+		},
+	)
 }

@@ -65,8 +65,10 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 			case webErr.Status/100 == 4:
 				c.JSON(webErr.Status, gin.H{"error": webErr.Err.Error()})
 			case webErr.Status/100 == 5:
+				c.Error(webErr.Err)
 				respond500()
 			default:
+				c.Error(webErr.Err)
 				c.JSON(webErr.Status, gin.H{"error": statusMessage(webErr.Status)})
 			}
 			c.Abort()
