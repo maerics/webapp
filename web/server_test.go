@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	"testing"
 
+	log "github.com/maerics/golog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +18,7 @@ func init() {
 }
 
 func TestStatusRoute(t *testing.T) {
-	config := Config{Environment: "test"}
+	config := Config{Mode: "test"}
 	server, err := NewServer(config, nil)
 	tmust(t, err)
 
@@ -30,7 +32,7 @@ func TestStatusRoute(t *testing.T) {
 	var body StatusDTO
 	tmust(t, json.Unmarshal(res.Body.Bytes(), &body))
 	assert.Equal(t, "ok", body.Status)
-	assert.Equal(t, "test", body.Env)
+	assert.Equal(t, "test", body.Mode)
 	assert.Equal(t, "GET", body.HTTP.Method)
 	assert.Equal(t, "/_status", body.HTTP.URL)
 }
@@ -45,6 +47,9 @@ func Test404(t *testing.T) {
 	server.ServeHTTP(res, req)
 
 	assert.Equal(t, 404, res.Code)
+	body := res.Body.String()
+	assert.True(t, log.Must1(regexp.MatchString(`\b404\b`, body)), `matches 404`)
+	assert.True(t, log.Must1(regexp.MatchString(`\bNot found\b`, body)), `matches "Not found"`)
 	assert.Equal(t, "text/html; charset=utf-8", res.Header().Get("Content-Type"))
 }
 
@@ -74,6 +79,9 @@ func Test500(t *testing.T) {
 
 	assert.Equal(t, 500, res.Code)
 	assert.Equal(t, "text/html; charset=utf-8", res.Header().Get("Content-Type"))
+	body := res.Body.String()
+	assert.True(t, log.Must1(regexp.MatchString(`\b500\b`, body)), `matches 500`)
+	assert.True(t, log.Must1(regexp.MatchString(`\bInternal server error\b`, body)), `matches "Internal server error"`)
 }
 
 func Test500PreferJson(t *testing.T) {

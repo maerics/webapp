@@ -9,8 +9,6 @@ import (
 	"path"
 	"webapp/db"
 
-	"github.com/gabriel-vasile/mimetype"
-	"github.com/gin-gonic/autotls"
 	"github.com/gin-gonic/gin"
 	log "github.com/maerics/golog"
 	util "github.com/maerics/goutil"
@@ -24,6 +22,7 @@ type Server struct {
 }
 
 func NewServer(config Config, database *db.DB) (*Server, error) {
+	gin.SetMode(config.Mode)
 	engine := gin.New()
 	if gin.Mode() != gin.ReleaseMode {
 		engine.Use(gin.Logger())
@@ -45,13 +44,8 @@ func NewServer(config Config, database *db.DB) (*Server, error) {
 }
 
 func (s *Server) Run() error {
-	log.Printf("starting web server in %q environment", s.Config.Environment)
+	log.Printf("starting web server in %q mode", s.Config.Mode)
 	log.Debugf("using config %v", util.MustJson(s.Config))
-
-	if s.Config.AutoCertManager != nil {
-		log.Printf("autotls enabled")
-		return autotls.RunWithManager(s, s.Config.AutoCertManager)
-	}
 
 	return s.Engine.Run()
 }
@@ -80,7 +74,7 @@ func (s *Server) notFound(c *gin.Context) {
 	panic(WebErr{c, 404, nil})
 }
 
-func (s *Server) mustServeStatic(c *gin.Context, status int, filename string) {
+func (s *Server) mustServeStatic(c *gin.Context, status int, filename, contentType string) {
 	f, err := s.FS.Open(filename)
 	if err != nil {
 		panic(err)
@@ -90,6 +84,5 @@ func (s *Server) mustServeStatic(c *gin.Context, status int, filename string) {
 	if err != nil {
 		panic(err)
 	}
-	mtype := mimetype.Detect(bs)
-	c.Data(status, mtype.String(), bs)
+	c.Data(status, contentType, bs)
 }

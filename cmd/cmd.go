@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	Env_ENV          = "ENV"          // The name of the environment, e.g. "production", "development", etc.
+	Env_MODE         = "MODE"         // The deployment mode, e.g. debug, release, test
 	Env_DATABASE_URL = "DATABASE_URL" // The database connection string.
 )
 

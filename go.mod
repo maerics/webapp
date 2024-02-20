@@ -3,8 +3,6 @@ module webapp
 go 1.19
 
 require (
-	github.com/gabriel-vasile/mimetype v1.4.1
-	github.com/gin-gonic/autotls v0.0.5
 	github.com/gin-gonic/gin v1.8.2
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jmoiron/sqlx v1.3.5
@@ -33,7 +31,6 @@ require (
 	github.com/ugorji/go/codec v1.2.8 // indirect
 	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30 // indirect
 	golang.org/x/net v0.4.0 // indirect
-	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect

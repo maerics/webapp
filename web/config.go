@@ -10,9 +10,9 @@ import (
 var Branch string
 
 type Config struct {
-	Environment string    `json:"env"`
-	BaseURL     string    `json:"base_url"`
-	Build       BuildInfo `json:"build"`
+	Mode    string    `json:"mode"`
+	BaseURL string    `json:"base_url"`
+	Build   BuildInfo `json:"build"`
 
 	PublicAssets    fs.FS             `json:"-"`
 	AutoCertManager *autocert.Manager `json:"-"`

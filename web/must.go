@@ -14,6 +14,10 @@ import (
 	log "github.com/maerics/golog"
 )
 
+const (
+	ContentTypeTextHTML = "text/html; charset=utf-8"
+)
+
 type WebErr struct {
 	Context *gin.Context
 	Status  int
@@ -25,8 +29,6 @@ func webMust(c *gin.Context, status int, err error) {
 		panic(WebErr{c, status, err})
 	}
 }
-
-var _ = webMust
 
 // Recovery middleware which enables using the "webMust(...)" function
 // which abuses panics to avoid repetitive boilerplate error handling.
@@ -44,8 +46,8 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 				log.Errorf("%v\n%v", webErr.Err, string(stack(5)))
 			}
 
-			respond404 := func() { s.mustServeStatic(c, 404, "404.html") }
-			respond500 := func() { s.mustServeStatic(c, webErr.Status, "500.html") }
+			respond404 := func() { s.mustServeStatic(c, 404, "404.html", ContentTypeTextHTML) }
+			respond500 := func() { s.mustServeStatic(c, webErr.Status, "500.html", ContentTypeTextHTML) }
 			if preferJson(c.Request.Header) {
 				respond404 = func() { c.Data(404, jsonContentType, []byte(`{"error":"not found"}`)) }
 				respond500 = func() { c.Data(500, jsonContentType, []byte(`{"error":"internal server error"}`)) }
@@ -70,7 +72,7 @@ func (s *Server) MustMiddleware() gin.HandlerFunc {
 		if preferJson(c.Request.Header) {
 			c.Data(500, jsonContentType, []byte(`{"error":"internal server error"}`))
 		} else {
-			s.mustServeStatic(c, 500, "500.html")
+			s.mustServeStatic(c, 500, "500.html", ContentTypeTextHTML)
 		}
 		c.AbortWithError(500, fmt.Errorf("%v", recovered))
 		log.Errorf("panic recovered: %v\n%v", recovered, string(stack(4)))
