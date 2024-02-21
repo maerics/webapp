@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
   id         INTEGER PRIMARY KEY,
-  name       TEXT UNIQUE NOT NULL CHECK (TRIM(name) != ''),
+  email      TEXT UNIQUE NOT NULL CHECK (TRIM(email) != ''),
+  password   TEXT NOT NULL CHECK (TRIM(password) != ''),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

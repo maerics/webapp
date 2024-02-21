@@ -73,3 +73,8 @@ var versionCmd = &cobra.Command{
 func mustGetVersionString() string {
 	return util.MustJson(web.GetBuildInfo(), true)
 }
+
+func must1[T any](t T, err error) T {
+	log.Must(err)
+	return t
+}

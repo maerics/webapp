@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 	"webapp/db"
+	"webapp/models"
+	"webapp/web"
 
 	log "github.com/maerics/golog"
 	util "github.com/maerics/goutil"
@@ -52,18 +54,18 @@ var executeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Read the query from STDIN.
 		buf := &bytes.Buffer{}
-		log.Must1(io.Copy(buf, os.Stdin))
+		must1(io.Copy(buf, os.Stdin))
 		query := strings.TrimSpace(buf.String())
 
 		// Execute the query.
 		dburl := util.MustEnv(Env_DATABASE_URL)
-		db := log.Must1(db.Connect(dburl))
+		db := must1(db.Connect(dburl))
 		tx := db.MustBegin()
 		log.Printf("executing query:\n\n    %v\n\n", query)
 		t0 := time.Now()
 
 		// Print the affected rows and last insert id, if applicable.
-		result := log.Must1(tx.Exec(query))
+		result := must1(tx.Exec(query))
 		if n, err := result.RowsAffected(); err == nil {
 			log.Printf("query affected %v row(s)", n)
 		}
@@ -96,17 +98,17 @@ var selectCmd = &cobra.Command{
 
 		// Read the query from STDIN.
 		buf := &bytes.Buffer{}
-		log.Must1(io.Copy(buf, os.Stdin))
+		must1(io.Copy(buf, os.Stdin))
 		query := strings.TrimSpace(buf.String())
 
 		// Execute the query.
 		dburl := util.MustEnv(Env_DATABASE_URL)
-		db := log.Must1(db.Connect(dburl))
+		db := must1(db.Connect(dburl))
 		log.Printf("executing query:\n\n    %v\n\n", query)
-		rows := log.Must1(db.Query(query))
+		rows := must1(db.Query(query))
 
 		// Inspect the result set column types.
-		columns := log.Must1(rows.Columns())
+		columns := must1(rows.Columns())
 		values := make([]any, len(columns))
 		scanArgs := make([]any, len(columns))
 		for i := range values {
@@ -156,20 +158,28 @@ var migrateCmd = &cobra.Command{
 	Short:   "Run the database migrations",
 	Run: func(cmd *cobra.Command, args []string) {
 		dburl := util.MustEnv(Env_DATABASE_URL)
-		db := log.Must1(db.Connect(dburl))
+		db := must1(db.Connect(dburl))
 		log.Must(db.Migrate())
 	},
 }
 
 var seedCmd = &cobra.Command{
-	Use:   "seed",
-	Short: "Seed the database with example data",
+	Use:     "seed",
+	Aliases: []string{"sd"},
+	Short:   "Seed the database with example data",
 	Run: func(cmd *cobra.Command, args []string) {
 		dburl := util.MustEnv(Env_DATABASE_URL)
-		db := log.Must1(db.Connect(dburl))
+		db := must1(db.Connect(dburl))
 		log.Must(db.Migrate())
-		if _, err := db.Exec("INSERT INTO users (name) VALUES ($1)", "Testing"); err != nil {
-			log.Fatal(err.Error())
+		password := "secret"
+		user := models.User{
+			Email:    "hello@example.com",
+			Password: password,
+		}
+		log.Printf("creating %#v", user)
+		query := "INSERT INTO users (email, password) VALUES ($1, $2)"
+		if _, err := db.Exec(query, user.Email, web.BCryptPassword(user.Password)); err != nil {
+			log.Fatalf("%v", err)
 		}
 		log.Printf("successfully seeded database")
 	},

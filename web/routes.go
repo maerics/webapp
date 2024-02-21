@@ -25,6 +25,7 @@ func (s *Server) ApplyRoutes() {
 	{
 		apiv1.GET("/users", s.ListUsers())
 		apiv1.PUT("/users", s.CreateUser())
+		apiv1.GET("/users/:id", s.GetUser())
 		apiv1.POST("/users/:id", s.UpdateUser())
 		apiv1.DELETE("/users/:id", s.DeleteUser())
 	}

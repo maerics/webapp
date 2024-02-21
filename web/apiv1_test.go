@@ -16,7 +16,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func InitDB(t *testing.T) *Server {
+const (
+	ContentTypeHeaderValue = "content-type"
+	ContentTypeTextJSON    = "text/json"
+)
+
+func InitTestServer(t *testing.T) *Server {
 	testdb, err := db.Connect(goutil.MustEnv(db.Env_TEST_DATABASE_URL))
 	tmust(t, err)
 	tmust(t, testdb.Migrate())
@@ -30,7 +35,7 @@ func InitDB(t *testing.T) *Server {
 }
 
 func TestUsersApiNoAuth(t *testing.T) {
-	server := InitDB(t)
+	server := InitTestServer(t)
 
 	newReq := func(method, route string, body io.Reader) func() (*http.Request, error) {
 		return func() (*http.Request, error) { return http.NewRequest(method, route, body) }
@@ -51,10 +56,11 @@ func TestUsersApiNoAuth(t *testing.T) {
 }
 
 func TestListUsersEmptyDB(t *testing.T) {
-	server := InitDB(t)
+	server := InitTestServer(t)
 
 	req, err := http.NewRequest("GET", "/api/v1/users", nil)
 	req.SetBasicAuth("admin", "secret")
+	req.Header.Add(ContentTypeHeaderValue, ContentTypeTextJSON)
 	tmust(t, err)
 	res := httptest.NewRecorder()
 	server.ServeHTTP(res, req)
@@ -64,13 +70,14 @@ func TestListUsersEmptyDB(t *testing.T) {
 }
 
 func TestListUsersWithOneUser(t *testing.T) {
-	server := InitDB(t)
+	server := InitTestServer(t)
 
-	_, err := server.DB.Exec("INSERT INTO users (name) VALUES ('Alice')")
+	_, err := server.DB.Exec("INSERT INTO users (email,password) VALUES ('foo','bar')")
 	tmust(t, err)
 
 	req, err := http.NewRequest("GET", "/api/v1/users", nil)
 	req.SetBasicAuth("admin", "secret")
+	req.Header.Add(ContentTypeHeaderValue, ContentTypeTextJSON)
 	tmust(t, err)
 	res := httptest.NewRecorder()
 	server.ServeHTTP(res, req)
@@ -81,7 +88,8 @@ func TestListUsersWithOneUser(t *testing.T) {
 	assert.Equal(t, 1, len(users))
 	user := users[0]
 	assert.LessOrEqual(t, 1, user.Id)
-	assert.Equal(t, "Alice", user.Name)
+	assert.Equal(t, "foo", user.Email)
+	assert.Equal(t, "bar", user.Password)
 
 	epsilon, err := time.ParseDuration("5s")
 	tmust(t, err)
@@ -91,11 +99,12 @@ func TestListUsersWithOneUser(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
-	server := InitDB(t)
+	server := InitTestServer(t)
 
-	reqBody := `{"name":"Bob"}`
+	reqBody := `{"email":"alice","password":"secret"}`
 	req, err := http.NewRequest("PUT", "/api/v1/users", strings.NewReader(reqBody))
 	req.SetBasicAuth("admin", "secret")
+	req.Header.Add(ContentTypeHeaderValue, ContentTypeTextJSON)
 	tmust(t, err)
 	res := httptest.NewRecorder()
 	server.ServeHTTP(res, req)
@@ -104,7 +113,8 @@ func TestCreateUser(t *testing.T) {
 	var user models.User
 	tmust(t, json.Unmarshal(res.Body.Bytes(), &user))
 	assert.LessOrEqual(t, 1, user.Id)
-	assert.Equal(t, "Bob", user.Name)
+	assert.Equal(t, "alice", user.Email)
+	assert.Equal(t, "", user.Password)
 
 	epsilon, err := time.ParseDuration("5s")
 	tmust(t, err)
@@ -113,20 +123,14 @@ func TestCreateUser(t *testing.T) {
 	assert.Equal(t, user.CreatedAt, user.UpdatedAt)
 }
 
-func TestUpdateUser(t *testing.T) {
-	server := InitDB(t)
+func TestGetUser(t *testing.T) {
+	server := InitTestServer(t)
 
-	var userId int
-	tmust(t, server.DB.Get(&userId, "INSERT INTO users (name) VALUES ('Alice') RETURNING id"))
-	t1s, err := time.ParseDuration("1s")
-	tmust(t, err)
-	time.Sleep(t1s)
-
-	// Update the user
-	reqBody := `{"name":"Bob"}`
-	uri := fmt.Sprintf("/api/v1/users/%v", userId)
-	req, err := http.NewRequest("POST", uri, strings.NewReader(reqBody))
+	// Create the new user
+	reqBody := `{"email":"alice","password":"password"}`
+	req, err := http.NewRequest("PUT", "/api/v1/users", strings.NewReader(reqBody))
 	req.SetBasicAuth("admin", "secret")
+	req.Header.Add(ContentTypeHeaderValue, ContentTypeTextJSON)
 	tmust(t, err)
 	res := httptest.NewRecorder()
 	server.ServeHTTP(res, req)
@@ -134,26 +138,64 @@ func TestUpdateUser(t *testing.T) {
 	assert.Equal(t, 200, res.Code)
 	var user models.User
 	tmust(t, json.Unmarshal(res.Body.Bytes(), &user))
-	assert.LessOrEqual(t, 1, user.Id)
-	assert.Equal(t, "Bob", user.Name)
-	assert.Greater(t, *user.UpdatedAt, *user.CreatedAt)
 
-	epsilon, err := time.ParseDuration("5s")
+	// Fetch the new user by id
+	req2, err := http.NewRequest("GET", fmt.Sprintf("/api/v1/users/%v", user.Id), nil)
+	req2.SetBasicAuth("admin", "secret")
+	req2.Header.Add(ContentTypeHeaderValue, ContentTypeTextJSON)
 	tmust(t, err)
-	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.CreatedAt))
-	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.UpdatedAt))
+	res2 := httptest.NewRecorder()
+	server.ServeHTTP(res2, req2)
+	var gotUser models.User
+	tmust(t, json.Unmarshal(res2.Body.Bytes(), &gotUser))
+	assert.Equal(t, user, gotUser)
+}
+
+func TestUpdateUser(t *testing.T) {
+	server := InitTestServer(t)
+
+	// Create the new user
+	reqBody := `{"email":"alice","password":"password"}`
+	req, err := http.NewRequest("PUT", "/api/v1/users", strings.NewReader(reqBody))
+	req.SetBasicAuth("admin", "secret")
+	req.Header.Add(ContentTypeHeaderValue, ContentTypeTextJSON)
+	tmust(t, err)
+	res := httptest.NewRecorder()
+	server.ServeHTTP(res, req)
+
+	assert.Equal(t, 200, res.Code)
+	var user models.User
+	tmust(t, json.Unmarshal(res.Body.Bytes(), &user))
+
+	// Update the user
+	reqBody = `{"email":"bob","password":"123456"}`
+	uri := fmt.Sprintf("/api/v1/users/%v", user.Id)
+	req2, err := http.NewRequest("POST", uri, strings.NewReader(reqBody))
+	req2.SetBasicAuth("admin", "secret")
+	req2.Header.Add(ContentTypeHeaderValue, ContentTypeTextJSON)
+	tmust(t, err)
+	res2 := httptest.NewRecorder()
+	server.ServeHTTP(res2, req2)
+	assert.Equal(t, 200, res2.Code)
+	var updatedUser models.User
+	tmust(t, json.Unmarshal(res2.Body.Bytes(), &updatedUser))
+	assert.Equal(t, "bob", updatedUser.Email)
+	assert.True(t, strings.HasPrefix(updatedUser.Password, "$2a$10"))
+
+	// TODO: Fetch the user
 }
 
 func TestDeleteUser(t *testing.T) {
-	server := InitDB(t)
+	server := InitTestServer(t)
 
 	var userId int
-	tmust(t, server.DB.Get(&userId, "INSERT INTO users (name) VALUES ('Alice') RETURNING id"))
+	tmust(t, server.DB.Get(&userId, "INSERT INTO users (email,password) VALUES ('alice','password') RETURNING id"))
 
 	// Delete the user
 	uri := fmt.Sprintf("/api/v1/users/%v", userId)
 	req, err := http.NewRequest("DELETE", uri, nil)
 	req.SetBasicAuth("admin", "secret")
+	req.Header.Add(ContentTypeHeaderValue, ContentTypeTextJSON)
 	tmust(t, err)
 	res := httptest.NewRecorder()
 	server.ServeHTTP(res, req)

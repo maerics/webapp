@@ -23,7 +23,7 @@ var webCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var dbh *db.DB = nil
 		if dburl := strings.TrimSpace(os.Getenv(Env_DATABASE_URL)); dburl != "" {
-			dbh = log.Must1(db.Connect(dburl))
+			dbh = must1(db.Connect(dburl))
 		} else {
 			log.Printf("skipping database, set %q to connect", Env_DATABASE_URL)
 		}
@@ -34,7 +34,7 @@ var webCmd = &cobra.Command{
 			PublicAssets: PublicAssets,
 		}
 
-		server := log.Must1(web.NewServer(config, dbh))
+		server := must1(web.NewServer(config, dbh))
 		log.Must(server.Run())
 	},
 }

@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"testing"
 
-	log "github.com/maerics/golog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,8 +47,8 @@ func Test404(t *testing.T) {
 
 	assert.Equal(t, 404, res.Code)
 	body := res.Body.String()
-	assert.True(t, log.Must1(regexp.MatchString(`\b404\b`, body)), `matches 404`)
-	assert.True(t, log.Must1(regexp.MatchString(`\bNot found\b`, body)), `matches "Not found"`)
+	assert.True(t, must1(regexp.MatchString(`\b404\b`, body)), `matches 404`)
+	assert.True(t, must1(regexp.MatchString(`\bNot found\b`, body)), `matches "Not found"`)
 	assert.Equal(t, "text/html; charset=utf-8", res.Header().Get("Content-Type"))
 }
 
@@ -80,8 +79,8 @@ func Test500(t *testing.T) {
 	assert.Equal(t, 500, res.Code)
 	assert.Equal(t, "text/html; charset=utf-8", res.Header().Get("Content-Type"))
 	body := res.Body.String()
-	assert.True(t, log.Must1(regexp.MatchString(`\b500\b`, body)), `matches 500`)
-	assert.True(t, log.Must1(regexp.MatchString(`\bInternal server error\b`, body)), `matches "Internal server error"`)
+	assert.True(t, must1(regexp.MatchString(`\b500\b`, body)), `matches 500`)
+	assert.True(t, must1(regexp.MatchString(`\bInternal server error\b`, body)), `matches "Internal server error"`)
 }
 
 func Test500PreferJson(t *testing.T) {

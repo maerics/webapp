@@ -120,3 +120,7 @@ func jsonLogger() gin.HandlerFunc {
 		},
 	)
 }
+func must1[T any](t T, err error) T {
+	log.Must(err)
+	return t
+}
