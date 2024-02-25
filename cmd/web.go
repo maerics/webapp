@@ -29,11 +29,21 @@ var webCmd = &cobra.Command{
 		}
 
 		config := web.Config{
-			Mode:  util.Getenv(Env_MODE, gin.DebugMode),
-			Build: web.GetBuildInfo(),
+			Mode:                 util.Getenv(Env_MODE, gin.DebugMode),
+			Build:                web.GetBuildInfo(),
+			CookieEncryptionKeys: cookieEncryptionKeysFromEnv(),
 		}
 
 		server := must1(web.NewServer(config, dbh))
 		log.Must(server.Run())
 	},
+}
+
+func cookieEncryptionKeysFromEnv() [][]byte {
+	keyStrings := strings.Split(util.Getenv(Env_COOKIE_ENCRYPTION_KEYS, "TODO:webapp-env-secret"), ",")
+	keys := make([][]byte, len(keyStrings))
+	for i, k := range keyStrings {
+		keys[i] = []byte(k)
+	}
+	return keys
 }

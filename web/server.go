@@ -10,6 +10,8 @@ import (
 	"path"
 	"webapp/db"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	log "github.com/maerics/golog"
 	util "github.com/maerics/goutil"
@@ -35,6 +37,10 @@ func NewServer(config Config, database *db.DB) (*Server, error) {
 	} else {
 		engine.Use(gin.Logger())
 	}
+
+	// Initialize the cookie session.
+	store := cookie.NewStore(config.CookieEncryptionKeys...)
+	engine.Use(sessions.Sessions(SessionCookieName, store))
 
 	server := &Server{
 		Engine: engine,
@@ -82,10 +88,12 @@ func (s *Server) notFound(c *gin.Context) {
 	panic(WebErr{c, 404, nil})
 }
 
+// TODO: convert to regular middleware
 func (s *Server) mustServeHTML(c *gin.Context, status int, filename string) {
 	s.mustServeStatic(c, status, filename, ContentTypeTextHTML)
 }
 
+// TODO: convert to regular middleware
 func (s *Server) mustServeStatic(c *gin.Context, status int, filename, contentType string) {
 	f, err := s.FS.Open(filename)
 	if err != nil {

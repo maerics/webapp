@@ -3,7 +3,7 @@ module webapp
 go 1.19
 
 require (
-	github.com/gin-contrib/sessions v0.0.4
+	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.9.1
 	github.com/iancoleman/strcase v0.2.0
 	github.com/jackc/pgx/v4 v4.18.1
@@ -61,6 +61,5 @@ require (
 
 require (
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
-	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 )

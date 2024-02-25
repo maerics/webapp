@@ -19,6 +19,12 @@ func (s *Server) ApplyRoutes() {
 	s.GET("/panic", doPanic)
 	s.POST("/query", s.dbQuery)
 
+	// Cookie based login.
+	s.GET("/login", func(ctx *gin.Context) { s.mustServeHTML(ctx, 200, "login.html") })
+	s.POST("/login", s.Login())
+	s.GET("/login/user", s.LoginAuth(), func(ctx *gin.Context) { ctx.JSON(200, s.loggedInUser(ctx)) })
+	s.GET("/logout", s.Logout())
+
 	// API group example with basic auth.
 	accounts := gin.Accounts{"admin": "secret"}
 	apiv1 := s.Group("/api/v1", gin.BasicAuth(accounts))

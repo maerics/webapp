@@ -8,6 +8,6 @@ h1#hello:after {
   padding-left: 1rem;
 }
 
-h2 {
+h1.error, h2.error {
   color: #ccc;
 }

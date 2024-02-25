@@ -10,7 +10,6 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	log "github.com/maerics/golog"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -20,7 +19,7 @@ const (
 )
 
 func unauthorized(ctx *gin.Context) {
-	webMust(ctx, 401, fmt.Errorf("Unauthorized"))
+	webMust(ctx, 401, fmt.Errorf("unauthorized"))
 }
 
 func (s *Server) loggedInUser(ctx *gin.Context) *models.User {
@@ -29,6 +28,8 @@ func (s *Server) loggedInUser(ctx *gin.Context) *models.User {
 	switch id := session.Get(SessionUserId).(type) {
 	case int:
 		webMust(ctx, 500, s.DB.Get(&user, "SELECT * FROM users WHERE id=$1", id))
+		user.Password = ""
+		return &user
 	}
 	return nil
 }
@@ -43,7 +44,7 @@ func isLoggedIn(ctx *gin.Context) bool {
 	}
 }
 
-func (s *Server) LoggedInUser() gin.HandlerFunc {
+func (s *Server) LoginAuth() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !isLoggedIn(ctx) {
 			unauthorized(ctx)
@@ -67,7 +68,6 @@ func (s *Server) Login() gin.HandlerFunc {
 			Email:    ctx.PostForm("email"),
 			Password: ctx.PostForm("password"),
 		}
-		log.Printf("OK: creds=%#v", creds)
 		if isEmpty(creds.Email) || isEmpty(creds.Password) {
 			unauthorized(ctx)
 		}
@@ -86,7 +86,6 @@ func (s *Server) Login() gin.HandlerFunc {
 		}
 
 		// Issue the login session.
-		log.Printf("OK: logged in")
 		session.Set(SessionUserId, user.Id)
 		session.Save()
 		ctx.Redirect(http.StatusFound, "/")

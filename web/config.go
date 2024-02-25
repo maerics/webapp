@@ -5,8 +5,6 @@ import (
 	"runtime/debug"
 )
 
-var Branch string
-
 type Config struct {
 	Mode    string    `json:"mode"`
 	BaseURL string    `json:"base_url"`
@@ -15,6 +13,8 @@ type Config struct {
 	PublicAssets fs.FS  `json:"-"`
 	Filename500  string `json:"-"`
 	Filename404  string `json:"-"`
+
+	CookieEncryptionKeys [][]byte
 }
 
 type BuildInfo struct {
@@ -24,6 +24,8 @@ type BuildInfo struct {
 	Dirty     bool   `json:"dirty,omitempty"`
 	GoVersion string `json:"goversion,omitempty"`
 }
+
+var Branch string
 
 var (
 	cachedBuildInfo BuildInfo
