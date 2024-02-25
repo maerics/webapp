@@ -7,9 +7,9 @@ A Go backend web application skeleton with opinionated logging and PostgreSQL da
 ├── cmd            - command line actions.
 ├── db             - database utilities.
 │   └── migrations - SQL files for db migrations.
-├── models         - go structs for db (and general) models.
-├── public         - frontend asset output folder (git ignored).
+├── models         - types for db and general models.
 └── web            - web server, config, and routing.
+    └── public     - static frontend assets.
 ```
 
 ## Setup
@@ -54,10 +54,11 @@ A Go backend web application skeleton with opinionated logging and PostgreSQL da
    ```sh
    go run . web
    ```
-1. Frontend assets go in `public/` and are hot-reloaded by default.
-1. Running with `MODE=release` serves embedded assets in `public/` at build time for a single portable executable.
+1. Frontend assets go in `web/public/` and are hot-reloaded by default.
+1. Running with `MODE=release` serves embedded assets in `web/public/` at build time for a single portable executable.
 1. Custom command line functions go in `cmd`
    ```sh
    go run .     # Print help message for all commands
    go run . db  # Print help message for "db" commands
+   go run . web # Run the web server
    ```

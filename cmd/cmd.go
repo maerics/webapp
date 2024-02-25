@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"runtime/debug"
 	"webapp/web"
@@ -22,8 +21,6 @@ var (
 	BuildBranch    string
 	BuildVersion   string
 	BuildTimestamp string
-
-	PublicAssets fs.FS
 )
 
 var (

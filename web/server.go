@@ -1,6 +1,7 @@
 package web
 
 import (
+	"embed"
 	"errors"
 	"io"
 	"io/fs"
@@ -20,6 +21,11 @@ type Server struct {
 	DB     *db.DB
 	FS     http.FileSystem
 }
+
+const PublicAssetsDirname = "web/public"
+
+//go:embed public
+var publicAssets embed.FS
 
 func NewServer(config Config, database *db.DB) (*Server, error) {
 	gin.SetMode(config.Mode)
@@ -55,10 +61,10 @@ func (s *Server) Run() error {
 func (s *Server) ServeStaticAssets() gin.HandlerFunc {
 	var static http.Handler
 	if gin.Mode() == gin.ReleaseMode {
-		s.FS = http.FS(s.Config.PublicAssets)
+		s.FS = http.FS(log.Must1(fs.Sub(publicAssets, PublicAssetsDirname)))
 	} else {
-		log.Print(`WARNING: frontend development mode, serving static assets from "./public"`)
-		s.FS = http.FS(os.DirFS("public"))
+		log.Printf(`WARNING: frontend development mode, serving static assets from "./%s"`, PublicAssetsDirname)
+		s.FS = http.FS(os.DirFS(PublicAssetsDirname))
 	}
 	static = http.FileServer(s.FS)
 	return func(c *gin.Context) {

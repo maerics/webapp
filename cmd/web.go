@@ -29,9 +29,8 @@ var webCmd = &cobra.Command{
 		}
 
 		config := web.Config{
-			Mode:         util.Getenv(Env_MODE, gin.DebugMode),
-			Build:        web.GetBuildInfo(),
-			PublicAssets: PublicAssets,
+			Mode:  util.Getenv(Env_MODE, gin.DebugMode),
+			Build: web.GetBuildInfo(),
 		}
 
 		server := must1(web.NewServer(config, dbh))
