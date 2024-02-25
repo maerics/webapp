@@ -1,6 +1,6 @@
 # webapp
 
-A Go backend web application skeleton with opinionated logging and basic database setup. Bring your own frontend framework.
+A Go backend web application skeleton with opinionated logging and PostgreSQL database connectivity. Bring your own frontend framework.
 
 
 ```
@@ -25,7 +25,7 @@ A Go backend web application skeleton with opinionated logging and basic databas
    ```
 1. Run `make` to ensure tests pass (and reset git):
    ```
-   export TEST_DATABASE_URL='sqlite3://test.db'
+   export TEST_DATABASE_URL=postgres://webapp:p@localhost:5432/webapp_test
    make \
      && rm -rf .git \
      && git init    \
@@ -36,6 +36,11 @@ A Go backend web application skeleton with opinionated logging and basic databas
 
 ## Overview
 
+1. Export database connection variables
+   ```sh
+   export DATABASE_URL=postgres://webapp:p@localhost:5432/webapp_dev
+   export TEST_DATABASE_URL=postgres://webapp:p@localhost:5432/webapp_test
+   ```
 1. Forward-only, idempotent database migrations go in `db/migrations/`
    ```sh
    go run . db migrate

@@ -93,8 +93,8 @@ func TestListUsersWithOneUser(t *testing.T) {
 
 	epsilon, err := time.ParseDuration("5s")
 	tmust(t, err)
-	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.CreatedAt))
-	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.UpdatedAt))
+	assert.GreaterOrEqual(t, epsilon, time.Since(*user.CreatedAt))
+	assert.GreaterOrEqual(t, epsilon, time.Since(*user.UpdatedAt))
 	assert.Equal(t, user.CreatedAt, user.UpdatedAt)
 }
 
@@ -118,8 +118,8 @@ func TestCreateUser(t *testing.T) {
 
 	epsilon, err := time.ParseDuration("5s")
 	tmust(t, err)
-	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.CreatedAt))
-	assert.GreaterOrEqual(t, epsilon, time.Now().UTC().Sub(*user.UpdatedAt))
+	assert.GreaterOrEqual(t, epsilon, time.Since(*user.CreatedAt))
+	assert.GreaterOrEqual(t, epsilon, time.Since(*user.UpdatedAt))
 	assert.Equal(t, user.CreatedAt, user.UpdatedAt)
 }
 

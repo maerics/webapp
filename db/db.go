@@ -8,8 +8,8 @@ import (
 	log "github.com/maerics/golog"
 
 	// Other supported database drivers can go here
-	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/jackc/pgx/v4/stdlib"
+	// _ "github.com/mattn/go-sqlite3"
 )
 
 type DB struct{ *sqlx.DB }
@@ -25,6 +25,8 @@ func Connect(dburl string) (*DB, error) {
 	switch driver {
 	case "sqlite3":
 		connstr, connstrSafe = u.Host, u.Host
+	case "postgres":
+		driver = "pgx"
 	}
 	log.Debugf("database driver=%q, connection=%q", driver, connstrSafe)
 

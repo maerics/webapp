@@ -176,7 +176,7 @@ var seedCmd = &cobra.Command{
 			Email:    "hello@example.com",
 			Password: password,
 		}
-		log.Printf("creating %#v", user)
+		log.Printf("creating user %v:%v", user.Email, user.Password)
 		query := "INSERT INTO users (email, password) VALUES ($1, $2)"
 		if _, err := db.Exec(query, user.Email, web.BCryptPassword(user.Password)); err != nil {
 			log.Fatalf("%v", err)
