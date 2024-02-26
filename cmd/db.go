@@ -8,14 +8,16 @@ import (
 	"io"
 	"os"
 	"strings"
+	"text/template"
 	"time"
 	"webapp/db"
 	"webapp/models"
 	"webapp/web"
 
+	"github.com/iancoleman/strcase"
 	log "github.com/maerics/golog"
 	util "github.com/maerics/goutil"
-	cobra "github.com/spf13/cobra"
+	"github.com/spf13/cobra"
 )
 
 func init() {
@@ -23,6 +25,7 @@ func init() {
 
 	dbCmd.AddCommand(selectCmd)
 	dbCmd.AddCommand(executeCmd)
+	dbCmd.AddCommand(generateCmd)
 	dbCmd.AddCommand(migrateCmd)
 	dbCmd.AddCommand(seedCmd)
 
@@ -75,10 +78,10 @@ var executeCmd = &cobra.Command{
 
 		// Commit or rollback.
 		if optDbExecuteCommit {
-			log.Must(tx.Commit())
+			must(tx.Commit())
 			log.Printf("committed transaction in %v", time.Since(t0))
 		} else {
-			log.Must(tx.Rollback())
+			must(tx.Rollback())
 			log.Printf("rolled back transaction in %v (see help for details)", time.Since(t0))
 		}
 	},
@@ -120,7 +123,7 @@ var selectCmd = &cobra.Command{
 		if outputcsv {
 			w = csv.NewWriter(os.Stdout)
 			w.Comma = rune(optDbSelectCsvSep[0])
-			log.Must(w.Write(columns))
+			must(w.Write(columns))
 		}
 
 		// Print to stdout.
@@ -128,7 +131,7 @@ var selectCmd = &cobra.Command{
 		enc := json.NewEncoder(os.Stdout)
 		for rows.Next() {
 			count++
-			log.Must(rows.Scan(scanArgs...))
+			must(rows.Scan(scanArgs...))
 
 			// Print the JSON or CSV result.
 			if outputcsv {
@@ -138,18 +141,109 @@ var selectCmd = &cobra.Command{
 						row[i] = fmt.Sprintf("%v", v)
 					}
 				}
-				log.Must(w.Write(row))
+				must(w.Write(row))
 			} else {
-				log.Must(enc.Encode(util.OrderedJsonObj{Keys: columns, Values: values}))
+				must(enc.Encode(util.OrderedJsonObj{Keys: columns, Values: values}))
 			}
 		}
 
 		if outputcsv {
 			w.Flush()
-			log.Must(w.Error())
+			must(w.Error())
 		}
 		log.Printf("query returned %v row(s)", count)
 	},
+}
+
+var generateCmd = &cobra.Command{
+	Use:     "generate",
+	Aliases: []string{"gen", "g"},
+	Short:   "Generate models from the existing database structure", // TODO: also api crud routes?
+	Run: func(cmd *cobra.Command, args []string) {
+		dburl := util.MustEnv(Env_DATABASE_URL)
+		db := must1(db.Connect(dburl))
+		// TODO: cowardly refuse for some reason?
+
+		// Select the public table names.
+		var tableNames []string
+		must(db.Select(&tableNames, `SELECT table_name FROM information_schema.tables WHERE table_schema='public'`))
+
+		// Select the column info for each table.
+		for _, tableName := range tableNames {
+			var tableInfos []tableInfo
+			query := fmt.Sprintf(`SELECT column_name, data_type, (is_nullable='YES') as nullable FROM information_schema.columns WHERE table_name = '%s' ORDER BY ordinal_position`, tableName)
+			must(db.Select(&tableInfos, query))
+
+			// Generate a Go struct model for each table.
+			filename := fmt.Sprintf("./models/%s.go", filenameFor(tableName))
+			var modelGoCode = bytes.Buffer{}
+			tmpl := must1(template.New("model").Parse(modelGoCodeTemplate))
+			must(tmpl.Execute(&modelGoCode, map[string]any{
+				"Name": strcase.ToCamel(tableName),
+				"Columns": Map(tableInfos, func(ti tableInfo) map[string]any {
+					return map[string]any{
+						"Name":     strcase.ToCamel(ti.Name),
+						"Type":     typeFor(ti.Type),
+						"Nullable": ti.Nullable,
+						"Annotations": "`" + strings.Join(Map([]string{"json", "db"}, func(key string) string {
+							return fmt.Sprintf("%s:%q", key, ti.Name)
+						}), " ") + "`",
+					}
+				}),
+			}))
+			// fmt.Println(modelGoCode.String())
+			must(os.WriteFile(filename, modelGoCode.Bytes(), os.FileMode(0o644)))
+			log.Printf("wrote %q", filename)
+		}
+	},
+}
+
+type tableInfo struct {
+	Name     string `db:"column_name"`
+	Type     string `db:"data_type"`
+	Nullable bool   `db:"nullable"`
+}
+
+func typeFor(postgresType string) string {
+	switch postgresType {
+	case "integer":
+		return "int"
+	case "text":
+		return "string"
+	}
+
+	if strings.HasPrefix(postgresType, "time") {
+		return "*time.Time"
+	}
+
+	panic(fmt.Errorf("unhandled postgres type %q", postgresType))
+}
+
+// TODO: move to util
+func Map[T, U any](ts []T, f func(T) U) []U {
+	us := make([]U, len(ts))
+	for i, t := range ts {
+		us[i] = f(t)
+	}
+	return us
+}
+
+const modelGoCodeTemplate = `package models
+
+import "time"
+
+type {{ .Name }} struct { {{range .Columns}}
+	{{ .Name }} {{if .Nullable}}*{{end}}{{ .Type }} {{ .Annotations }} {{end}}
+}
+`
+
+func filenameFor(s string) string {
+	if strings.HasSuffix(s, "ies") {
+		return s[:len(s)-3] + "y"
+	} else if strings.HasSuffix(s, "s") {
+		return s[:len(s)-1]
+	}
+	panic(fmt.Errorf("unhandled table singularlization %q", s))
 }
 
 var migrateCmd = &cobra.Command{
@@ -159,7 +253,7 @@ var migrateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		dburl := util.MustEnv(Env_DATABASE_URL)
 		db := must1(db.Connect(dburl))
-		log.Must(db.Migrate())
+		must(db.Migrate())
 	},
 }
 
@@ -170,7 +264,7 @@ var seedCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		dburl := util.MustEnv(Env_DATABASE_URL)
 		db := must1(db.Connect(dburl))
-		log.Must(db.Migrate())
+		must(db.Migrate())
 		password := "secret"
 		user := models.User{
 			Email:    "hello@example.com",

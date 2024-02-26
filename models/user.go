@@ -2,11 +2,10 @@ package models
 
 import "time"
 
-type User struct {
-	Id       int    `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-
-	UpdatedAt *time.Time `json:"updated_at"`
-	CreatedAt *time.Time `json:"created_at"`
+type Users struct {
+	Id        int        `json:"id" db:"id"`
+	Email     string     `json:"email" db:"email"`
+	Password  string     `json:"password" db:"password"`
+	CreatedAt *time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at" db:"updated_at"`
 }

@@ -1,7 +1,9 @@
 CREATE TABLE IF NOT EXISTS users (
   id         SERIAL PRIMARY KEY,
+  -- name       TEXT UNIQUE NOT NULL CHECK (TRIM(name) != '')
   email      TEXT UNIQUE NOT NULL CHECK (TRIM(email) != ''),
   password   TEXT NOT NULL CHECK (TRIM(password) != ''),
+  -- is_admin   BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC'),
   updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW() AT TIME ZONE 'UTC')
 );

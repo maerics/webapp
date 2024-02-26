@@ -35,7 +35,7 @@ var webCmd = &cobra.Command{
 		}
 
 		server := must1(web.NewServer(config, dbh))
-		log.Must(server.Run())
+		must(server.Run())
 	},
 }
 

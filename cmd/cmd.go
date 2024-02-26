@@ -44,7 +44,7 @@ func Run() {
 		}
 	}()
 
-	log.Must(rootCmd.Execute())
+	must(rootCmd.Execute())
 }
 
 var rootCmd = &cobra.Command{
@@ -72,7 +72,11 @@ func mustGetVersionString() string {
 	return util.MustJson(web.GetBuildInfo(), true)
 }
 
-func must1[T any](t T, err error) T {
+func must(err error) {
 	log.Must(err)
+}
+
+func must1[T any](t T, err error) T {
+	must(err)
 	return t
 }
