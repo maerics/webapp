@@ -8,8 +8,8 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/maerics/golog v0.0.0-20221219001014-052ba3967102
-	github.com/maerics/goutil v0.0.0-20221230205021-2d1085e577d1
+	github.com/maerics/golog v0.0.0-20230107174156-b3e2eaac121b
+	github.com/maerics/goutil v0.0.0-20240226050407-646d8a7f78ce
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.19.0
@@ -50,7 +50,7 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.7.0 // indirect
-	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30 // indirect
+	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

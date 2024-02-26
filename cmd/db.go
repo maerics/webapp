@@ -181,12 +181,12 @@ var generateCmd = &cobra.Command{
 			tmpl := must1(template.New("model").Parse(modelGoCodeTemplate))
 			must(tmpl.Execute(&modelGoCode, map[string]any{
 				"Name": strcase.ToCamel(filenameFor(tableName)),
-				"Columns": Map(tableInfos, func(ti tableInfo) map[string]any {
+				"Columns": util.Map(tableInfos, func(ti tableInfo) map[string]any {
 					return map[string]any{
 						"Name":     strcase.ToCamel(ti.Name),
 						"Type":     typeFor(ti.Type),
 						"Nullable": ti.Nullable,
-						"Annotations": "`" + strings.Join(Map([]string{"json", "db"}, func(key string) string {
+						"Annotations": "`" + strings.Join(util.Map([]string{"json", "db"}, func(key string) string {
 							return fmt.Sprintf("%s:%q", key, ti.Name)
 						}), " ") + "`",
 					}
@@ -219,15 +219,6 @@ func typeFor(postgresType string) string {
 	}
 
 	panic(fmt.Errorf("unhandled postgres type %q", postgresType))
-}
-
-// TODO: move to util
-func Map[T, U any](ts []T, f func(T) U) []U {
-	us := make([]U, len(ts))
-	for i, t := range ts {
-		us[i] = f(t)
-	}
-	return us
 }
 
 const modelGoCodeTemplate = `package models
