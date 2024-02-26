@@ -179,7 +179,7 @@ var generateCmd = &cobra.Command{
 			var modelGoCode = bytes.Buffer{}
 			tmpl := must1(template.New("model").Parse(modelGoCodeTemplate))
 			must(tmpl.Execute(&modelGoCode, map[string]any{
-				"Name": strcase.ToCamel(tableName),
+				"Name": strcase.ToCamel(filenameFor(tableName)),
 				"Columns": Map(tableInfos, func(ti tableInfo) map[string]any {
 					return map[string]any{
 						"Name":     strcase.ToCamel(ti.Name),
