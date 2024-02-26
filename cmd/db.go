@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"go/format"
 	"io"
 	"os"
 	"strings"
@@ -192,7 +193,8 @@ var generateCmd = &cobra.Command{
 				}),
 			}))
 			// fmt.Println(modelGoCode.String())
-			must(os.WriteFile(filename, modelGoCode.Bytes(), os.FileMode(0o644)))
+			gocode := must1(format.Source(modelGoCode.Bytes()))
+			must(os.WriteFile(filename, gocode, os.FileMode(0o644)))
 			log.Printf("wrote %q", filename)
 		}
 	},
@@ -232,8 +234,8 @@ const modelGoCodeTemplate = `package models
 
 import "time"
 
-type {{ .Name }} struct { {{range .Columns}}
-	{{ .Name }} {{if .Nullable}}*{{end}}{{ .Type }} {{ .Annotations }} {{end}}
+type {{ .Name }} struct { {{- range .Columns }}
+	{{ .Name }} {{if .Nullable}}*{{end}}{{ .Type }} {{ .Annotations }}{{end}}
 }
 `
 
