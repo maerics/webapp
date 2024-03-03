@@ -29,7 +29,7 @@ var webCmd = &cobra.Command{
 		}
 
 		config := web.Config{
-			Mode:                 util.Getenv(Env_MODE, gin.DebugMode),
+			Mode:                 util.Getenv(Env_GIN_MODE, gin.DebugMode),
 			Build:                web.GetBuildInfo(),
 			CookieEncryptionKeys: cookieEncryptionKeysFromEnv(),
 		}

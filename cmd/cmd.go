@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	Env_MODE                   = "MODE"         // The deployment mode, e.g. debug, release, test
+	Env_GIN_MODE               = "GIN_MODE"     // The deployment mode, e.g. debug, release, test
 	Env_DATABASE_URL           = "DATABASE_URL" // The database connection string.
 	Env_COOKIE_ENCRYPTION_KEYS = "COOKIE_ENCRYPTION_KEYS"
 )
