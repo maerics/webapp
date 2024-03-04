@@ -15,9 +15,13 @@ import (
 
 func (s *Server) ApplyRoutes() {
 	// Simple examples.
+	s.GET("/_status", s.Status())
 	s.GET("/hello", hello)
 	s.GET("/panic", doPanic)
 	s.POST("/query", s.dbQuery)
+	s.GET("/template", func(ctx *gin.Context) {
+		ctx.HTML(200, "index.html", gin.H{"name": ctx.DefaultQuery("name", "World")})
+	})
 
 	// Cookie based login.
 	s.GET("/login", func(ctx *gin.Context) { s.mustServeHTML(ctx, 200, "login.html") })

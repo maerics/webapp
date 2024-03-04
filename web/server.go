@@ -3,11 +3,13 @@ package web
 import (
 	"embed"
 	"errors"
+	"html/template"
 	"io"
 	"io/fs"
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"webapp/db"
 
 	"github.com/gin-contrib/sessions"
@@ -26,9 +28,10 @@ type Server struct {
 
 const (
 	PublicAssetsDirname = "public"
+	WebTemplatesDirname = "templates"
 )
 
-//go:embed public/*
+//go:embed public/* templates/*
 var embedFS embed.FS
 
 func NewServer(config Config, database *db.DB) (*Server, error) {
@@ -52,8 +55,7 @@ func NewServer(config Config, database *db.DB) (*Server, error) {
 
 	engine.Use(server.MustMiddleware())
 	engine.NoRoute(server.ServeStaticAssets())
-
-	server.GET("/_status", server.Status())
+	server.LoadHtmlTemplates()
 	server.ApplyRoutes()
 
 	return server, nil
@@ -64,6 +66,23 @@ func (s *Server) Run() error {
 	log.Debugf("using config %v", util.MustJson(s.Config))
 
 	return s.Engine.Run()
+}
+func (s *Server) LoadHtmlTemplates() {
+	// Super DEBUG mode dangerously hot reloads web templates for rapid development.
+	if gin.IsDebugging() && strings.TrimSpace(os.Getenv("DEBUG")) != "" {
+		log.Printf("hot reloading web templates")
+		s.Use(func(ctx *gin.Context) {
+			localdirname := "web/" + WebTemplatesDirname
+			log.Printf("🔥 hot reloading web templates from %q", localdirname)
+			s.Engine.SetHTMLTemplate(template.Must(
+				template.ParseFS(os.DirFS(localdirname), "*")))
+		})
+		return
+	}
+
+	// Default modes load HTML templates from the embedded FS.
+	s.Engine.SetHTMLTemplate(template.Must(
+		template.ParseFS(embedFS, WebTemplatesDirname+"/*")))
 }
 
 func (s *Server) ServeStaticAssets() gin.HandlerFunc {
