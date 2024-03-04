@@ -68,5 +68,7 @@ Set the environment variable `GIN_MODE=release` for production workloads.
 
 Optionally set:
 * `DEBUG=<any>`: enable debugging features.
+* `DATABASE_URL=<string>`: set the database URL connection string.
 * `GIN_MODE="release"|<any>`: change the execution mode.
 * `PORT=<int>`: the local port on which to listen.
+* `TEST_DATABASE_URL=<string>`: set the test database URL connection string.
