@@ -9,7 +9,8 @@ A Go backend web application skeleton with opinionated logging and PostgreSQL da
 │   └── migrations - SQL files for db migrations.
 ├── models         - types for db and general models.
 └── web            - web server, config, and routing.
-    └── public     - static frontend assets.
+    ├── public     - embedded static frontend assets.
+    └── templates  - embedded golang html template files.
 ```
 
 ## Setup
@@ -58,7 +59,14 @@ A Go backend web application skeleton with opinionated logging and PostgreSQL da
 1. Running with `MODE=release` serves embedded assets in `web/public/` at build time for a single portable executable.
 1. Custom command line functions go in `cmd`
    ```sh
-   go run .     # Print help message for all commands
-   go run . db  # Print help message for "db" commands
-   go run . web # Run the web server
+   go run . -h # Print help message for any command...
    ```
+
+## Environment Variables
+
+Set the environment variable `GIN_MODE=release` for production workloads.
+
+Optionally set:
+* `DEBUG=<any>`: enable debugging features.
+* `GIN_MODE="release"|<any>`: change the execution mode.
+* `PORT=<int>`: the local port on which to listen.
